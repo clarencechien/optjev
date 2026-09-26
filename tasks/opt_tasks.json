@@ -1,0 +1,20 @@
+{
+  "_comment": "optjev task family。格式同 jevlike data/seeds/tasks.json。crit 變體帶 optscnr playbook 的判準；nocrit 變體只有 label。gold 由 optscnr shadow_tracer.make_verdict 同一邏輯算（峰值 ≥ 2x 為命中）。",
+  "opt_play": {
+    "category": "O", "kind": "noul", "n_options": 2,
+    "instructions": "這張價外買權（call）在接下來 20 天內，權利金是否會漲到進場價的 2 倍以上？值得賭嗎？",
+    "options": {
+      "A": {"label": "賭", "criteria": "符合結構候選（分數 ≥ 8、到期 21–120 天、IV < 50%、價外 < 25%、OI 七日淨增）；或有異常掃貨／點火且流動性正常、無 IV 頂峰、無尾段價外警告、到期前有排定催化事件"},
+      "B": {"label": "不賭", "criteria": "到期 ≤ 20 天或 > 120 天、IV ≥ 50%、價外 ≥ 25%、OI 七日淨減或不明、流動性稀薄、IV 頂峰、只靠單日暴量沒有 OI 跟上、末日結算"}
+    }
+  },
+  "opt_tier": {
+    "category": "O", "kind": "score", "n_options": 3,
+    "instructions": "這張價外買權（call）在接下來 20 天內，權利金相對進場價的峰值倍數會落在哪一級？",
+    "options": {
+      "A": {"label": "高：峰值 ≥ 2 倍", "criteria": "結構候選條件全符合，且有掃貨／點火與 OI 淨增互相確認，到期前有催化事件"},
+      "B": {"label": "中：峰值 1.2–2 倍", "criteria": "部分符合：有量但 OI 沒跟上、或 IV 偏高、或價外偏遠，會動但不夠翻倍"},
+      "C": {"label": "低：峰值 < 1.2 倍", "criteria": "到期太近或太遠、IV 頂峰、流動性稀薄、單日暴量後無延續、末日結算"}
+    }
+  }
+}
