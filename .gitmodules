@@ -1,0 +1,3 @@
+[submodule "jevlike"]
+	path = jevlike
+	url = https://github.com/clarencechien/jevlike

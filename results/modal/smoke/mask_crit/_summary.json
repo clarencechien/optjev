@@ -1,0 +1,22 @@
+{
+  "opt_play": {
+    "n": 20,
+    "acc": 0.8,
+    "acc_easy": 0.8,
+    "acc_hard": 0.0,
+    "missing_rate": 0.0,
+    "control_n": 0,
+    "control_acc": 0.0,
+    "control_unparsed": 0
+  },
+  "opt_tier": {
+    "n": 20,
+    "acc": 0.35,
+    "acc_easy": 0.35,
+    "acc_hard": 0.0,
+    "missing_rate": 0.0,
+    "control_n": 0,
+    "control_acc": 0.0,
+    "control_unparsed": 0
+  }
+}

@@ -1,0 +1,1 @@
+{"variants": ["mask_crit"], "tasks": ["opt_play", "opt_tier"], "limit": 20, "gpu": "NVIDIA L4", "workers": 4, "model": "26b", "model_file": "gemma-4-26B-A4B-it-UD-Q4_K_M.gguf", "server_extra": "--swa-full", "build_info": "b11118-e6ab7c1a4", "server_start_s": 19.1, "bench_s": 15.3, "ts": "2026-09-26T13:35:10Z"}
