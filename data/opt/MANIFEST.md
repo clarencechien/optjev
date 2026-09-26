@@ -1,6 +1,6 @@
 # data/opt — 由 optscnr 訊號 log 建構（build_dataset.py）
 
-來源：`/home/user/clarencechien/optscnr`，檔案 data/iv_log/signals_2026-06.json, data/iv_log/signals_2026-07.json, data/iv_log/signals_2026-08.json, data/iv_log/signals_2026-09.json；讀到 1676 筆，跳過（無檢查點或月份外）209 筆，保留 1467 筆。
+來源：`optscnr local clone @ 6c1037f466a34261e8077e8ca9c79a6173716a11`，檔案 data/iv_log/signals_2026-06.json, data/iv_log/signals_2026-07.json, data/iv_log/signals_2026-08.json, data/iv_log/signals_2026-09.json；讀到 1676 筆，跳過（無檢查點或月份外）209 筆，保留 1467 筆。
 
 ## 凍結的定義
 

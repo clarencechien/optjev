@@ -21,6 +21,7 @@ import io
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.request
 from datetime import datetime
@@ -162,7 +163,11 @@ def main():
     ap.add_argument("--raw", default=None, help="GitHub raw at this optscnr commit instead of a local clone")
     a = ap.parse_args()
     sigs = load_signals(a.optscnr, a.raw)
-    src_desc = f"raw@{a.raw}" if a.raw else a.optscnr
+    if a.raw:
+        src_desc = f"optscnr raw@{a.raw}"
+    else:
+        sha = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=a.optscnr).stdout.strip()
+        src_desc = f"optscnr local clone @ {sha or '?'}"
     rows_feat, per_variant = [], {(m, c): {t: [] for t in TASKS} for m, c in VARIANTS}
     n_skip = 0
     for s in sigs:
