@@ -194,7 +194,16 @@ def analyze_variant(variant, task, feats, by_id, ca, te, hit, rule_b, lr_p):
     for rbv in (True, False):
         for bv in (True, False):
             grid[f"ruleB={int(rbv)}/jev={int(bv)}"] = basket_stats(F, te_v & (rb_v == rbv) & (bet == bv))
-    out.update({"target_hit_cal": float(target), "rule_b_cal_hit": float(rb_cal_hit), "threshold": thr, "threshold_how": how,
+    predA = pred == 0
+    diag = {}
+    for name, m in (("cal", ca_v), ("test", te_v)):
+        diag[name] = {"predA_rate": float(predA[m].mean()), "agree_ruleB": float((predA[m] == rb_v[m]).mean()),
+                      "predA_given_ruleB": float(predA[m & rb_v].mean()) if (m & rb_v).any() else None,
+                      "predA_given_not_ruleB": float(predA[m & ~rb_v].mean()) if (m & ~rb_v).any() else None,
+                      "hit_given_predA": float(hit_v[m & predA].mean()) if (m & predA).any() else None,
+                      "hit_given_predB": float(hit_v[m & ~predA].mean()) if (m & ~predA).any() else None,
+                      "hit_base": float(hit_v[m].mean())}
+    out.update({"diag": diag, "target_hit_cal": float(target), "rule_b_cal_hit": float(rb_cal_hit), "threshold": thr, "threshold_how": how,
                 "cal_basket": cal_b, "cal_coverage": cal_cov, "test_basket": test_b, "test_coverage": cov_test, "rule_b_test": rb_test,
                 "test_basket_ci": wilson(int(round((test_b["hit"] or 0) * test_b["n"])), test_b["n"]),
                 "lr_threshold": lr_thr, "lr_test_basket": lr_test_b, "lr_test_coverage": float(lr_bet[te_v].mean()), "lr_test_basket_matched_test_cov": lr_test_b_te, "grid2x2": grid,
@@ -277,6 +286,18 @@ def write_report(res, lr_info, V, feats, ca, te, path, run_meta):
         for k, b in m["grid2x2"].items():
             rbv, jv = k.split("/")
             L.append(f"| {'過' if rbv.endswith('1') else '不過'} | {'賭' if jv.endswith('1') else '不賭'} | {b['n']} | {f(b['hit'])} | {f(b['ev'].get('C_bound'), 2)}（{b['n_ev']}） |")
+    L += ["", "## 診斷：模型的票在跟什麼走（argmax，校準後）", "",
+          "| variant | task | split | 說「賭/高」比例 | 與規則 B 一致率 | 規則 B 過→賭 | 規則 B 不過→賭 | 命中｜賭 | 命中｜不賭 | 基礎命中 |", "|---|---|---|---|---|---|---|---|---|---|"]
+    for (v, t), r in res.items():
+        for sp in ("cal", "test"):
+            d = r["diag"][sp]
+            L.append(f"| {v} | {t} | {sp} | {d['predA_rate']:.2f} | {d['agree_ruleB']:.2f} | {f(d['predA_given_ruleB'], 2)} | {f(d['predA_given_not_ruleB'], 2)} | {f(d['hit_given_predA'])} | {f(d['hit_given_predB'])} | {d['hit_base']:.3f} |")
+    ev_by_month = {}
+    for r in feats:
+        mo = r["snapshot_date"][:7]
+        ev_by_month.setdefault(mo, [0, 0, 0]); ev_by_month[mo][0] += 1; ev_by_month[mo][1] += r["has_event"]; ev_by_month[mo][2] += r.get("earnings_covered", False)
+    L += ["", "state 欄位的月份分布（事件標籤從 2026-07-31 起才有；含「無財報」「吃不到財報」等否定句）：" +
+          "；".join(f"{mo} n={n}，有事件 token {e / n:.2f}，覆蓋財報 {c / n:.2f}" for mo, (n, e, c) in sorted(ev_by_month.items()))]
     hit = np.array([r["hit"] for r in feats])
     rb = np.array([r["rule_b"] for r in feats])
     L += ["", "## 基線與背景", "",
@@ -315,7 +336,7 @@ def main():
                                   "auroc_test": r["auroc_test"], "test_basket": r["test_basket"], "test_coverage": r["test_coverage"]} for (v, t), r in res.items()}}
     json.dump(lock, open(os.path.join(ROOT, "results/thresholds.lock.json"), "w"), ensure_ascii=False, indent=1, default=float)
     write_report(res, lr_info, V, feats, ca, te, os.path.join(ROOT, "results/01-retro.md"), run_meta)
-    print(json.dumps(V, ensure_ascii=False, indent=1, default=float))
+    print(json.dumps(V, ensure_ascii=False, indent=1, default=lambda x: None if (isinstance(x, float) and math.isnan(x)) else float(x)))
 
 
 if __name__ == "__main__":
