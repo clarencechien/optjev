@@ -127,7 +127,7 @@ def feature_matrix(feats):
         x = [math.log(max(r["entry_price"], 0.01)), (r.get("entry_iv") or 0) / 100, math.log1p(r["dte"]), (r.get("otm_pct") or 0) / 100,
              math.log1p(max(r.get("oi") or 0, 0)), math.copysign(math.log1p(abs(r.get("oi_d7") or 0)), r.get("oi_d7") or 0),
              math.log1p(max(r.get("volume") or 0, 0)), float(r.get("score") or 0), float(r["rule_b"]), float(r["news_at_signal"]),
-             float(r["has_event"]), float(r["n_warnings"]), math.log1p(min(r.get("ignition_x") or 0, 1000)), float(r.get("underlying_move") or 0) / 10,
+             float(r.get("earnings_covered", False)), float(r["n_warnings"]), math.log1p(min(r.get("ignition_x") or 0, 1000)), float(r.get("underlying_move") or 0) / 10,
              float(r["premium_tier"] == "lottery"), float(r["premium_tier"] == "heavy")]
         x += [float(k in (r["features"] or [])) for k in FEATURE_KEYS]
         X.append(x)

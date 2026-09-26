@@ -148,6 +148,7 @@ def render_state(sig, mask):
     L.append("到期前排定事件：" + ("、".join(events) if events else "無"))
     L.append("警告：" + ("、".join(warns) if warns else "無"))
     return "\n".join(L), {"dte": dte, "otm_pct": otm, "features": feats, "n_warnings": len(warns), "has_event": bool(events),
+                          "earnings_covered": any(e.startswith("📅覆蓋財報") for e in events),  # 事件 token 含「無財報」「吃不到財報」等否定句，LR 用這個
                           "ignition_x": tg["ignition_x"]}
 
 
@@ -191,7 +192,7 @@ def main():
                           "entry_price": s["entry_price"], "entry_iv": s.get("entry_iv"), "entry_spot": s.get("entry_spot"), "strike": s["strike"],
                           "dte": meta["dte"], "otm_pct": meta["otm_pct"], "oi": s.get("oi"), "oi_d7": s.get("oi_d7"), "volume": s.get("volume"),
                           "score": s.get("score"), "premium_tier": s.get("premium_tier") or tier_of(s["entry_price"]), "features": meta["features"],
-                          "n_warnings": meta["n_warnings"], "has_event": meta["has_event"], "ignition_x": meta["ignition_x"],
+                          "n_warnings": meta["n_warnings"], "has_event": meta["has_event"], "earnings_covered": meta["earnings_covered"], "ignition_x": meta["ignition_x"],
                           "news_at_signal": bool(s.get("news_at_signal")), "underlying_move": s.get("signal_day_underlying_move"),
                           "checkpoints": sum((s.get(k) or {}).get("opt_price") is not None for k in ("t5", "t10", "t20"))})
         for (m, c) in VARIANTS:
