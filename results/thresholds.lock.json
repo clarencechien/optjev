@@ -1,0 +1,167 @@
+{
+ "commit": "c3aceae",
+ "retro_dir": "results/modal/retro",
+ "main_variant": "mask_crit",
+ "tasks": {
+  "mask_crit/opt_play": {
+   "T": 14.33033808474126,
+   "threshold": 0.5435123563158336,
+   "threshold_how": "fallback_cov20",
+   "n_cal": 920,
+   "n_test": 547,
+   "auroc_test": 0.47489447489447484,
+   "test_basket": {
+    "n": 63,
+    "hit": 0.1746031746031746,
+    "n_ev": 20,
+    "ev": {
+     "A_hold": 0.715671549875119,
+     "B_half2x": 0.7301625292565623,
+     "C_bound": 0.8121367763162972,
+     "stop_half": 0.8247978891357309
+    }
+   },
+   "test_coverage": 0.11517367458866545
+  },
+  "mask_crit/opt_tier": {
+   "T": 49.99999999999999,
+   "threshold": 0.41818002422224887,
+   "threshold_how": "fallback_cov20",
+   "n_cal": 920,
+   "n_test": 547,
+   "auroc_test": 0.46812196812196816,
+   "test_basket": {
+    "n": 314,
+    "hit": 0.1178343949044586,
+    "n_ev": 39,
+    "ev": {
+     "A_hold": 0.6675998498107487,
+     "B_half2x": 0.6858690805799795,
+     "C_bound": 0.7608884630115113,
+     "stop_half": 0.7658627683154869
+    }
+   },
+   "test_coverage": 0.5740402193784278
+  },
+  "mask_nocrit/opt_play": {
+   "T": 19.585507454046304,
+   "threshold": 0.6252653826657675,
+   "threshold_how": "fallback_cov20",
+   "n_cal": 920,
+   "n_test": 547,
+   "auroc_test": 0.5159075159075158,
+   "test_basket": {
+    "n": 214,
+    "hit": 0.12149532710280374,
+    "n_ev": 16,
+    "ev": {
+     "A_hold": 0.5143569331165492,
+     "B_half2x": 0.5588881831165493,
+     "C_bound": 0.6546143920939479,
+     "stop_half": 0.6578106898438171
+    }
+   },
+   "test_coverage": 0.3912248628884826
+  },
+  "mask_nocrit/opt_tier": {
+   "T": 49.99999999999999,
+   "threshold": 0.4069398865102382,
+   "threshold_how": "fallback_cov20",
+   "n_cal": 920,
+   "n_test": 547,
+   "auroc_test": 0.5496440496440497,
+   "test_basket": {
+    "n": 174,
+    "hit": 0.16666666666666666,
+    "n_ev": 17,
+    "ev": {
+     "A_hold": 0.6076058717211381,
+     "B_half2x": 0.6495176364270204,
+     "C_bound": 0.7287127051640517,
+     "stop_half": 0.7317209853992227
+    }
+   },
+   "test_coverage": 0.3180987202925046
+  },
+  "nomask_crit/opt_play": {
+   "T": 13.841433151960334,
+   "threshold": 0.49538989201836064,
+   "threshold_how": "fallback_cov20",
+   "n_cal": 920,
+   "n_test": 547,
+   "auroc_test": 0.5685125685125685,
+   "test_basket": {
+    "n": 61,
+    "hit": 0.18032786885245902,
+    "n_ev": 20,
+    "ev": {
+     "A_hold": 0.7118594586893946,
+     "B_half2x": 0.7263504380708379,
+     "C_bound": 0.8126313173441817,
+     "stop_half": 0.8252924301636156
+    }
+   },
+   "test_coverage": 0.11151736745886655
+  },
+  "nomask_crit/opt_tier": {
+   "T": 49.99999999999999,
+   "threshold": 0.41333832863602243,
+   "threshold_how": "fallback_cov20",
+   "n_cal": 920,
+   "n_test": 547,
+   "auroc_test": 0.4935109935109935,
+   "test_basket": {
+    "n": 302,
+    "hit": 0.11589403973509933,
+    "n_ev": 36,
+    "ev": {
+     "A_hold": 0.6851067965373251,
+     "B_half2x": 0.7048984632039917,
+     "C_bound": 0.7861694608381513,
+     "stop_half": 0.7915582915841249
+    }
+   },
+   "test_coverage": 0.5521023765996343
+  },
+  "nomask_nocrit/opt_play": {
+   "T": 15.903128463970603,
+   "threshold": 0.6227004627801006,
+   "threshold_how": "fallback_cov20",
+   "n_cal": 920,
+   "n_test": 547,
+   "auroc_test": 0.5349335349335349,
+   "test_basket": {
+    "n": 180,
+    "hit": 0.12777777777777777,
+    "n_ev": 17,
+    "ev": {
+     "A_hold": 0.5986788662141052,
+     "B_half2x": 0.6405906309199876,
+     "C_bound": 0.7332375920418798,
+     "stop_half": 0.7317209853992227
+    }
+   },
+   "test_coverage": 0.3290676416819013
+  },
+  "nomask_nocrit/opt_tier": {
+   "T": 49.99999999999999,
+   "threshold": 0.40491338682072353,
+   "threshold_how": "fallback_cov20",
+   "n_cal": 920,
+   "n_test": 547,
+   "auroc_test": 0.5717570717570718,
+   "test_basket": {
+    "n": 184,
+    "hit": 0.15217391304347827,
+    "n_ev": 20,
+    "ev": {
+     "A_hold": 0.7350136255355457,
+     "B_half2x": 0.7706386255355457,
+     "C_bound": 0.8336478017484135,
+     "stop_half": 0.8395015432450119
+    }
+   },
+   "test_coverage": 0.33638025594149906
+  }
+ }
+}

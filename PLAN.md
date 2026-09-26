@@ -1,4 +1,4 @@
-# optjev — 用 jevlike 做選擇權「快選器」的可行性規劃（只計劃，未動手）
+# optjev — 用 jevlike 做選擇權「快選器」的可行性規劃（P0/P1 已做完，判定：不做）
 
 日期：2026-09-26。上游：`clarencechien/jevlike`（typed decision 引擎）、`clarencechien/optscnr`（每日 US 選擇權掃描 + 影子追蹤）。
 
@@ -133,3 +133,17 @@ optscnr (GitHub raw)                          optjev (本 repo)
 - jevlike：`README.md` §1–3、`results/REPORT.md` §0、§3f、`results/11-thresholds.md`、`bench/thresholds.py`、`docs/handoff-gb10.md` §5
 - optscnr：`CONTEXT.md` 第九節（紅線）、`strategy_lab.py:58-69`（規則 B）、`shadow_tracer.py:176-197`（verdict 邏輯）、`data/strategy_matrix.json`、`cloudflare/src/index.js:372-458`（decision 流程）
 - Modal：`@modal.fastapi_endpoint()`、`schedule=modal.Cron(..., timezone=...)` 需 `modal deploy`；L4 $0.000222/s（≈ $0.80/h）；Starter 每月 $30 免費額度
+
+## 8. 結果（2026-09-26，P1 跑完照 §4 填）
+
+| 門檻 | 結果 | 判定 |
+|---|---|---|
+| G0 洩漏 | opt_play test acc 遮/不遮差 1.6 點（crit）；nocrit 差 6.0 點、AUROC 不遮高 0.09，有記憶跡象，故一律以遮的版本為準 | ✓ |
+| G1 鑑別力 | mask_crit/opt_play test AUROC **0.475**（cal 0.575）；八個變體 test 全在 0.47–0.57，沒有一個到 0.60 | ✗ 停 |
+| G2 賭籃子 | 命中 17.5%（n=63）vs 規則 B 同視窗 38.5%（n=13）；EV(C_bound) 0.81 vs 1.18 | ✗ |
+| G2b 基線 | LR（25 個結構欄位）test AUROC 0.672，籃子命中 23.1% vs jevlike 17.5% | ✗ |
+
+**判定：不做。P2 不啟動。** 模型帶判準時是在複述規則 B（一致率 93%），不帶判準時六成的列都說賭；規則 B 不過而 jevlike 說賭的 50 筆命中 12%，等於基礎命中率。§6 第 1 條風險命中：結構欄位的資訊 LR 就拿得到，jevlike 沒有多出來的判斷。
+細節與診斷：`results/01-retro.md`；原始 logprobs：`results/modal/retro/`；費用：`results/cost.md`。
+
+若要再試，只有兩個方向值得：(a) 給模型規則 B 拿不到的文字（新聞標題、`why_it_popped` 補齊後），(b) 把 LR 當快選器，jevlike 退場。

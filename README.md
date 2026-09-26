@@ -8,8 +8,8 @@ optjev **只讀** optscnr，永不寫回（它的紅線 1、4、7、9）。規�
 | 階段 | 內容 | 狀態 |
 |---|---|---|
 | P0 | 骨架：`jevlike/` submodule、`tasks/opt_tasks.json`、`build_dataset.py`、`modal_app.py`、`analyze.py` | 做完 |
-| P1 | 回溯校準：1,467 筆訊號 × 2 題 × 4 變體，Modal L4；判定 G0–G2b | 見 `results/01-retro.md` |
-| P2 | 前瞻配對：每日排程、兩個選股器同進影子帳本 | 未開始（P1 判定決定） |
+| P1 | 回溯校準：1,467 筆訊號 × 2 題 × 4 變體，Modal L4；判定 G0–G2b | 做完。**判定：不做**（G1 test AUROC 0.475 < 0.60 停止線；LR 基線 0.672）。見 `results/01-retro.md` |
+| P2 | 前瞻配對：每日排程、兩個選股器同進影子帳本 | 不啟動（P1 沒過 G1） |
 
 ## 跑一次
 
