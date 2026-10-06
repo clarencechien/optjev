@@ -1,0 +1,22 @@
+{
+ "summary": {
+  "original": {
+   "n": 72,
+   "acc_fwd": 1.0,
+   "s": 15.5
+  },
+  "easy": {
+   "n": 48,
+   "acc_fwd": 1.0,
+   "s": 10.2
+  },
+  "hard": {
+   "n": 111,
+   "acc_fwd": 0.8198198198198198,
+   "s": 83.7
+  }
+ },
+ "system": "You are a decision engine. Answer with exactly one letter.",
+ "backend": "llama",
+ "model": "31b"
+}

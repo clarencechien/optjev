@@ -10,6 +10,7 @@ optjev **只讀** optscnr，永不寫回（它的紅線 1、4、7、9）。規�
 | P0 | 骨架：`jevlike/` submodule、`tasks/opt_tasks.json`、`build_dataset.py`、`modal_app.py`、`analyze.py` | 做完 |
 | P1 | 回溯校準：1,467 筆訊號 × 2 題 × 4 變體，Modal L4；判定 G0–G2b | 做完。**判定：不做**（G1 test AUROC 0.475 < 0.60 停止線；LR 基線 0.672）。見 `results/01-retro.md` |
 | P2 | 前瞻配對：每日排程、兩個選股器同進影子帳本 | 不啟動（P1 沒過 G1） |
+| jevlike v12 | 借 Gemma 4 新做法的四件事（交接 `docs/handoff-jevlike-v12.md`，程式 `v12/`） | 做完。**四件都沒改變預設**：E1 持平、E2 維持每類溫度、E3 12B 過準確率門檻但 L4 上比 26B 慢、31B 不列、E4 持平。見 `v12/results/17-v12.md` |
 
 ## 跑一次
 
@@ -26,6 +27,9 @@ python3 analyze.py                                                  # → result
 `scripts/modal.sh` 把本環境的 `modal` / `modal_secret` 映射成 `MODAL_TOKEN_ID` / `MODAL_TOKEN_SECRET`。模型檔沿用 jevlike 的 volume `gb10-decide-models`。
 
 ## 結構
+
+- `v12/` jevlike 第 12 輪：`analyze_v12.py`（E1/E2 離線）、`analyze_v12_gpu.py`（E3/E4）、`modal_v12.py`、`think_tail.py`；結果 `v12/results/`，原始 logprobs `results/modal/v12/`
+- `docs/jevlike-primer.html` jevlike 懶人包（imitator v3），公開於 https://imitator.ai-apps.work/r/jevlike-primer
 
 - `tasks/opt_tasks.json` 兩題：`opt_play`（賭／不賭）、`opt_tier`（峰值等級高／中／低）；選項帶 optscnr playbook 判準（crit）或只有 label（nocrit）
 - `build_dataset.py` → `data/opt/<mask|nomask>_<crit|nocrit>/*.jsonl`（jevlike 格式）、`features.jsonl`（LR 基線與 EV）、`MANIFEST.md`（凍結定義與樣本數）
