@@ -1,0 +1,102 @@
+{
+  "m_alarm_severity": {
+    "n": 53,
+    "acc": 0.9811320754716981,
+    "acc_easy": 0.0,
+    "acc_hard": 0.0,
+    "missing_rate": 0.5849056603773585,
+    "control_n": 0,
+    "control_acc": 0.0,
+    "control_unparsed": 0
+  },
+  "m_alarm_category": {
+    "n": 60,
+    "acc": 0.9833333333333333,
+    "acc_easy": 0.0,
+    "acc_hard": 0.0,
+    "missing_rate": 1.0,
+    "control_n": 0,
+    "control_acc": 0.0,
+    "control_unparsed": 0
+  },
+  "m_needs_dispatch": {
+    "n": 60,
+    "acc": 0.9833333333333333,
+    "acc_easy": 0.0,
+    "acc_hard": 0.0,
+    "missing_rate": 0.9,
+    "control_n": 0,
+    "control_acc": 0.0,
+    "control_unparsed": 0
+  },
+  "q_spc_action": {
+    "n": 60,
+    "acc": 0.8333333333333334,
+    "acc_easy": 0.0,
+    "acc_hard": 0.0,
+    "missing_rate": 0.6333333333333333,
+    "control_n": 0,
+    "control_acc": 0.0,
+    "control_unparsed": 0
+  },
+  "q_defect_root": {
+    "n": 55,
+    "acc": 0.9636363636363636,
+    "acc_easy": 0.0,
+    "acc_hard": 0.0,
+    "missing_rate": 0.9818181818181818,
+    "control_n": 0,
+    "control_acc": 0.0,
+    "control_unparsed": 0
+  },
+  "p_uph_anomaly": {
+    "n": 60,
+    "acc": 1.0,
+    "acc_easy": 0.0,
+    "acc_hard": 0.0,
+    "missing_rate": 0.9833333333333333,
+    "control_n": 0,
+    "control_acc": 0.0,
+    "control_unparsed": 0
+  },
+  "p_line_change": {
+    "n": 60,
+    "acc": 1.0,
+    "acc_easy": 0.0,
+    "acc_hard": 0.0,
+    "missing_rate": 0.9666666666666667,
+    "control_n": 0,
+    "control_acc": 0.0,
+    "control_unparsed": 0
+  },
+  "x_ticket_route": {
+    "n": 60,
+    "acc": 0.9833333333333333,
+    "acc_easy": 0.0,
+    "acc_hard": 0.0,
+    "missing_rate": 0.9166666666666666,
+    "control_n": 0,
+    "control_acc": 0.0,
+    "control_unparsed": 0
+  },
+  "x_escalate": {
+    "n": 60,
+    "acc": 1.0,
+    "acc_easy": 0.0,
+    "acc_hard": 0.0,
+    "missing_rate": 0.9,
+    "control_n": 0,
+    "control_acc": 0.0,
+    "control_unparsed": 0
+  },
+  "x_10way_intent": {
+    "n": 56,
+    "acc": 0.9285714285714286,
+    "acc_easy": 0.0,
+    "acc_hard": 0.0,
+    "missing_rate": 1.0,
+    "control_n": 0,
+    "control_acc": 0.0,
+    "control_unparsed": 0
+  }
+}

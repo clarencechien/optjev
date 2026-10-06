@@ -70,12 +70,12 @@ def _model_path(name):
 CTX = {"31b": "8192"}  # 31B Q8 (32.6 GB) + --swa-full KV at 16384 OOMs a 48 GB L40S (12.8 GB KV); 8192 = 2048 per slot
 
 
-def _start(model_path, extra=(), think=False, ctx="16384"):
+def _start(model_path, extra=(), think=False, ctx="16384", np_="4"):
     """think=True (E4) drops --reasoning-budget 0, which would force the thought channel shut during generation.
     The letter readout goes through /completion with our own template, so stage A is unaffected by that flag."""
     os.environ["LD_LIBRARY_PATH"] = f"{BUILD_DIR}/bin:" + os.environ.get("LD_LIBRARY_PATH", "")
     budget = [] if think else ["--reasoning-budget", "0"]
-    cmd = [SERVER_BIN, "-m", model_path, "-ngl", "99", "-c", ctx, "-np", "4", "--port", str(PORT), "--host", "127.0.0.1",
+    cmd = [SERVER_BIN, "-m", model_path, "-ngl", "99", "-c", ctx, "-np", np_, "--port", str(PORT), "--host", "127.0.0.1",
            "--jinja", *budget, "--swa-full", "--metrics", *extra]
     print("starting:", " ".join(cmd), flush=True)
     proc = subprocess.Popen(cmd)
@@ -111,9 +111,11 @@ def _bench(name, which, args, out_sub):
     return json.loads(json.dumps(ret, default=str))
 
 
-def _run(name, which, args, out_sub=""):
+def _run(name, which, args, out_sub="", np_="4"):
+    """np_: fewer slots = longer context per slot (llama-server splits -c across slots). Used for the JevBench reruns:
+    some public items are ~3.9k tokens, which exceeds a 2048-token slot (31B, ctx 8192 / 4) or 4096 + a 512-token thought (E4)."""
     os.makedirs("/results/v12", exist_ok=True)
-    proc, start_s = _start(_model_path(name), think=(which == "think_tail"), ctx=CTX.get(name, "16384"))
+    proc, start_s = _start(_model_path(name), think=(which == "think_tail"), ctx=CTX.get(name, "16384"), np_=np_)
     try:
         return {"server_start_s": start_s, "ret": _bench(name, which, args, out_sub)}
     finally:
@@ -146,13 +148,13 @@ def _suite(name, skip=""):
 
 
 @app.function(image=image, gpu="L4", volumes={"/models": models, "/results": results}, timeout=60 * 60 * 3)
-def run_l4(name: str = "12b", which: str = "smoke", args: str = "", out_sub: str = ""):
-    return _run(name, which, args, out_sub)
+def run_l4(name: str = "12b", which: str = "smoke", args: str = "", out_sub: str = "", slots: str = "4"):
+    return _run(name, which, args, out_sub, slots)
 
 
 @app.function(image=image, gpu="L40S", volumes={"/models": models, "/results": results}, timeout=60 * 60 * 3)
-def run_l40s(name: str = "31b", which: str = "smoke", args: str = "", out_sub: str = ""):
-    return _run(name, which, args, out_sub)
+def run_l40s(name: str = "31b", which: str = "smoke", args: str = "", out_sub: str = "", slots: str = "4"):
+    return _run(name, which, args, out_sub, slots)
 
 
 @app.function(image=image, gpu="L4", volumes={"/models": models, "/results": results}, timeout=60 * 60 * 4)

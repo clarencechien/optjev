@@ -1,0 +1,5092 @@
+{
+  "ts": "2026-10-06T02:05:42Z",
+  "props": {
+    "default_generation_settings": {
+      "params": {
+        "seed": 4294967295,
+        "temperature": 1.0,
+        "dynatemp_range": 0.0,
+        "dynatemp_exponent": 1.0,
+        "top_k": 64,
+        "top_p": 0.949999988079071,
+        "min_p": 0.05000000074505806,
+        "top_n_sigma": -1.0,
+        "xtc_probability": 0.0,
+        "xtc_threshold": 0.10000000149011612,
+        "typical_p": 1.0,
+        "repeat_last_n": 64,
+        "repeat_penalty": 1.0,
+        "presence_penalty": 0.0,
+        "frequency_penalty": 0.0,
+        "dry_multiplier": 0.0,
+        "dry_base": 1.75,
+        "dry_allowed_length": 2,
+        "dry_penalty_last_n": 64,
+        "mirostat": 0,
+        "mirostat_tau": 5.0,
+        "mirostat_eta": 0.10000000149011612,
+        "adaptive_target": -1.0,
+        "adaptive_decay": 0.8999999761581421,
+        "max_tokens": -1,
+        "n_predict": -1,
+        "n_keep": 0,
+        "n_discard": 0,
+        "ignore_eos": false,
+        "stream": false,
+        "n_probs": 0,
+        "min_keep": 0,
+        "chat_format": "Content-only",
+        "reasoning_format": "none",
+        "reasoning_in_content": false,
+        "generation_prompt": "",
+        "samplers": [
+          "penalties",
+          "dry",
+          "top_n_sigma",
+          "top_k",
+          "typ_p",
+          "top_p",
+          "min_p",
+          "xtc",
+          "temperature"
+        ],
+        "speculative.types": "none",
+        "timings_per_token": false,
+        "post_sampling_probs": false,
+        "backend_sampling": false,
+        "lora": []
+      },
+      "n_ctx": 4096
+    },
+    "total_slots": 4,
+    "model_path": "/models/v12/gemma-4-12B-it-Q8_0.gguf",
+    "chat_template": "{#\n  Template: Google Gemma 4 Canonical Chat Template\n  Author: Google Gemma Engineering Team\n  Published: 2026-07-09\n  Context: Fixed tool-calling loops, turn closures, and thinking content-ordering.\n#}\n{%- macro format_parameters(properties, required, filter_keys=false) -%}\n    {%- set standard_keys = ['description', 'type', 'properties', 'required', 'nullable'] -%}\n    {%- set ns = namespace(found_first=false) -%}\n    {%- for key, value in properties | dictsort -%}\n        {%- set add_comma = false -%}\n        {%- if not filter_keys or key not in standard_keys -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {{ key }}:{\n            {%- if value['description'] -%}\n                description:<|\"|>{{ value['description'] }}<|\"|>\n                {%- set add_comma = true -%}\n            {%- endif -%}\n            {%- if value['type'] | upper == 'STRING' -%}\n                {%- if value['enum'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    enum:{{ format_argument(value['enum']) }}\n                {%- endif -%}\n            {%- elif value['type'] | upper == 'ARRAY' -%}\n                {%- if value['items'] is mapping and value['items'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    items:{\n                    {%- set ns_items = namespace(found_first=false) -%}\n                    {%- for item_key, item_value in value['items'] | dictsort -%}\n                        {%- if item_value is not none -%}\n                            {%- if ns_items.found_first %},{% endif -%}\n                            {%- set ns_items.found_first = true -%}\n                            {%- if item_key == 'properties' -%}\n                                properties:{\n                                {%- if item_value is mapping -%}\n                                    {{- format_parameters(item_value, value['items']['required'] | default([])) -}}\n                                {%- endif -%}\n                                }\n                            {%- elif item_key == 'required' -%}\n                                required:[\n                                {%- for req_item in item_value -%}\n                                    <|\"|>{{- req_item -}}<|\"|>\n                                    {%- if not loop.last %},{% endif -%}\n                                {%- endfor -%}\n                                ]\n                            {%- elif item_key == 'type' -%}\n                                {%- if item_value is string -%}\n                                    type:{{ format_argument(item_value | upper) }}\n                                {%- else -%}\n                                    type:{{ format_argument(item_value | map('upper') | list) }}\n                                {%- endif -%}\n                            {%- else -%}\n                                {{ item_key }}:{{ format_argument(item_value) }}\n                            {%- endif -%}\n                        {%- endif -%}\n                    {%- endfor -%}\n                    }\n                {%- endif -%}\n            {%- endif -%}\n            {%- if value['nullable'] %}\n                {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                nullable:true\n            {%- endif -%}\n            {%- if value['type'] | upper == 'OBJECT' -%}\n                {%- if value['properties'] is defined and value['properties'] is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value['properties'], value['required'] | default([])) -}}\n                    }\n                {%- elif value is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value, value['required'] | default([]), filter_keys=true) -}}\n                    }\n                {%- endif -%}\n                {%- if value['required'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    required:[\n                    {%- for item in value['required'] | default([]) -%}\n                        <|\"|>{{- item -}}<|\"|>\n                        {%- if not loop.last %},{% endif -%}\n                    {%- endfor -%}\n                    ]\n                {%- endif -%}\n            {%- endif -%}\n            {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n            type:<|\"|>{{ value['type'] | upper }}<|\"|>}\n        {%- endif -%}\n    {%- endfor -%}\n{%- endmacro -%}\n{%- macro format_function_declaration(tool_data) -%}\n    declaration:{{- tool_data['function']['name'] -}}{description:<|\"|>{{- tool_data['function']['description'] -}}<|\"|>\n    {%- set params = tool_data['function']['parameters'] -%}\n    {%- if params -%}\n        ,parameters:{\n        {%- if params['properties'] -%}\n            properties:{ {{- format_parameters(params['properties'], params['required']) -}} },\n        {%- endif -%}\n        {%- if params['required'] -%}\n            required:[\n            {%- for item in params['required'] -%}\n                <|\"|>{{- item -}}<|\"|>\n                {{- ',' if not loop.last -}}\n            {%- endfor -%}\n            ],\n        {%- endif -%}\n        {%- if params['type'] -%}\n            type:<|\"|>{{- params['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    {%- if 'response' in tool_data['function'] -%}\n        {%- set response_declaration = tool_data['function']['response'] -%}\n        ,response:{\n        {%- if response_declaration['description'] -%}\n            description:<|\"|>{{- response_declaration['description'] -}}<|\"|>,\n        {%- endif -%}\n        {%- if response_declaration['type'] | upper == 'OBJECT' -%}\n            type:<|\"|>{{- response_declaration['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    }\n{%- endmacro -%}\n{%- macro format_argument(argument, escape_keys=True) -%}\n    {%- if argument is none -%}\n        {{- 'null' -}}\n    {%- elif argument is string -%}\n        {{- '<|\"|>' + argument + '<|\"|>' -}}\n    {%- elif argument is boolean -%}\n        {{- 'true' if argument else 'false' -}}\n    {%- elif argument is mapping -%}\n        {{- '{' -}}\n        {%- set ns = namespace(found_first=false) -%}\n        {%- for key, value in argument | dictsort -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {%- if escape_keys -%}\n                {{- '<|\"|>' + key + '<|\"|>' -}}\n            {%- else -%}\n                {{- key -}}\n            {%- endif -%}\n            :{{- format_argument(value, escape_keys=escape_keys) -}}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- elif argument is sequence -%}\n        {{- '[' -}}\n        {%- for item in argument -%}\n            {{- format_argument(item, escape_keys=escape_keys) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- ']' -}}\n    {%- else -%}\n        {{- argument -}}\n    {%- endif -%}\n{%- endmacro -%}\n{%- macro strip_thinking(text) -%}\n    {%- set ns = namespace(result='') -%}\n    {%- for part in text.split('<channel|>') -%}\n        {%- if '<|channel>' in part -%}\n            {%- set ns.result = ns.result + part.split('<|channel>')[0] -%}\n        {%- else -%}\n            {%- set ns.result = ns.result + part -%}\n        {%- endif -%}\n    {%- endfor -%}\n    {{- ns.result | trim -}}\n{%- endmacro -%}\n\n{%- macro format_tool_response_block(tool_name, response) -%}\n    {{- '<|tool_response>' -}}\n    {%- if response is mapping -%}\n        {{- 'response:' + tool_name + '{' -}}\n        {%- for key, value in response | dictsort -%}\n            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- else -%}\n        {{- 'response:' + tool_name + '{value:' + format_argument(response, escape_keys=False) + '}' -}}\n    {%- endif -%}\n    {{- '<tool_response|>' -}}\n{%- endmacro -%}\n\n{#- ===== SETUP ===== -#}\n{%- set ns = namespace(prev_message_type=None, prev_non_tool_role=None) -%}\n{%- set loop_messages = messages -%}\n{%- set enable_thinking = enable_thinking | default(false) -%}\n{%- set preserve_thinking = preserve_thinking | default(false) -%}\n{{- bos_token -}}\n{#- Handle System/Tool Definitions Block -#}\n{%- if enable_thinking or tools or (messages and messages[0]['role'] in ['system', 'developer']) -%}\n    {{- '<|turn>system\\n' -}}\n    {#- Inject Thinking token at the very top of the FIRST system turn -#}\n    {%- if enable_thinking -%}\n        {{- '<|think|>\\n' -}}\n        {%- set ns.prev_message_type = 'think' -%}\n    {%- endif -%}\n    {%- if messages and messages[0]['role'] in ['system', 'developer'] -%}\n        {%- if messages[0]['content'] is string -%}\n            {{- messages[0]['content'] | trim -}}\n        {%- elif messages[0]['content'] is sequence -%}\n            {%- for item in messages[0]['content'] -%}\n                {{- item['text'] | trim + ' '-}}\n            {%- endfor -%}\n        {%- endif -%}\n        {%- set loop_messages = messages[1:] -%}\n    {%- endif -%}\n    {%- if tools -%}\n        {%- for tool in tools %}\n            {{- '<|tool>' -}}\n            {{- format_function_declaration(tool) | trim -}}\n            {{- '<tool|>' -}}\n        {%- endfor %}\n        {%- set ns.prev_message_type = 'tool' -%}\n    {%- endif -%}\n    {{- '<turn|>\\n' -}}\n{%- endif %}\n\n{#- Pre-scan: find last user message index for reasoning guard -#}\n{%- set ns_turn = namespace(last_user_idx=-1) -%}\n{%- for i in range(loop_messages | length) -%}\n    {%- if loop_messages[i]['role'] == 'user' -%}\n        {%- set ns_turn.last_user_idx = i -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{#- Loop through messages -#}\n{%- for message in loop_messages -%}\n    {%- if message['role'] != 'tool' -%}\n    {%- set ns.prev_message_type = None -%}\n    {%- set role = 'model' if message['role'] == 'assistant' else message['role'] -%}\n    {#- Detect continuation using tracked state — O(1) instead of O(n) backward scan -#}\n    {%- set continue_same_model_turn = (role == 'model' and ns.prev_non_tool_role == 'assistant') -%}\n    {%- if not continue_same_model_turn -%}\n        {{- '<|turn>' + role + '\\n' }}\n\n    {%- endif -%}\n\n    {#- Render reasoning/reasoning_content as thinking channel -#}\n    {%- set thinking_text = message.get('reasoning') or message.get('reasoning_content') -%}\n    {%- set thinking_gate = (loop.index0 > ns_turn.last_user_idx) or (preserve_thinking and message.get('tool_calls')) -%}\n    {%- if thinking_text and thinking_gate -%}\n        {{- '<|channel>thought\\n' + thinking_text + '\\n<channel|>' -}}\n    {%- endif -%}\n\n            {%- if message.get('tool_calls') -%}\n                {%- for tool_call in message.get('tool_calls') -%}\n                    {%- set function = tool_call['function'] -%}\n                    {{- '<|tool_call>call:' + function['name'] + '{' -}}\n                    {%- if function['arguments'] is mapping -%}\n                        {%- set ns_args = namespace(found_first=false) -%}\n                        {%- for key, value in function['arguments'] | dictsort -%}\n                            {%- if ns_args.found_first %},{% endif -%}\n                            {%- set ns_args.found_first = true -%}\n                            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n                        {%- endfor -%}\n                    {%- elif function['arguments'] is none -%}\n                    {%- else -%}\n                        {{- raise_exception(\n                            \"chat_template: tool_calls[].function.arguments must be a \"\n                            \"JSON object (mapping), not a string. Deserialize arguments \"\n                            \"before passing to the template.\"\n                        ) -}}\n                    {%- endif -%}\n                    {{- '}<tool_call|>' -}}\n                {%- endfor -%}\n                {%- set ns.prev_message_type = 'tool_call' -%}\n            {%- endif -%}\n\n            {%- set ns_tr_out = namespace(flag=false) -%}\n            {%- if message.get('tool_responses') -%}\n                {#- Legacy: tool_responses embedded on the assistant message (Google/Gemma native) -#}\n                {%- for tool_response in message.get('tool_responses') -%}\n                    {{- format_tool_response_block(tool_response['name'] | default('unknown', true), tool_response['response']) -}}\n                    {%- set ns_tr_out.flag = true -%}\n                    {%- set ns.prev_message_type = 'tool_response' -%}\n                {%- endfor -%}\n            {%- elif message.get('tool_calls') -%}\n                {#- OpenAI Chat Completions: forward-scan consecutive role:tool messages -#}\n                {%- set ns_tool_scan = namespace(stopped=false) -%}\n                {%- for k in range(loop.index0 + 1, loop_messages | length) -%}\n                    {%- if ns_tool_scan.stopped -%}\n                    {%- elif loop_messages[k]['role'] != 'tool' -%}\n                        {%- set ns_tool_scan.stopped = true -%}\n                    {%- else -%}\n                        {%- set follow = loop_messages[k] -%}\n                        {#- Resolve tool_call_id to function name -#}\n                        {%- set ns_tname = namespace(name=follow.get('name') or 'unknown') -%}\n                        {%- for tc in message.get('tool_calls') -%}\n                            {%- if tc.get('id') == follow.get('tool_call_id') -%}\n                                {%- set ns_tname.name = tc['function']['name'] -%}\n                            {%- endif -%}\n                        {%- endfor -%}\n                        {#- Handle content as string or content-parts array -#}\n                        {%- set tool_body = follow.get('content') -%}\n                        {%- if tool_body is string -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- elif tool_body is sequence and tool_body is not string -%}\n                            {%- set ns_txt = namespace(s='') -%}\n                            {%- for part in tool_body -%}\n                                {%- if part.get('type') == 'text' -%}\n                                    {%- set ns_txt.s = ns_txt.s + (part.get('text') | default('')) -%}\n                                {%- endif -%}\n                            {%- endfor -%}\n                            {{- format_tool_response_block(ns_tname.name, ns_txt.s) -}}\n                            {%- for part in tool_body -%}\n                                {%- if part.get('type') in ['image', 'image_url'] -%}\n                                    {{- '<|image|>' -}}\n                                {%- elif part.get('type') in ['audio', 'input_audio'] -%}\n                                    {{- '<|audio|>' -}}\n                                {%- elif part.get('type') == 'video' -%}\n                                    {{- '<|video|>' -}}\n                                {%- endif -%}\n                            {%- endfor -%}\n                        {%- else -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- endif -%}\n                        {%- set ns_tr_out.flag = true -%}\n                        {%- set ns.prev_message_type = 'tool_response' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n\n            {%- set captured_content -%}\n            {%- if message.get('content') is string -%}\n                {%- if role == 'model' -%}\n                    {{- strip_thinking(message['content']) -}}\n                {%- else -%}\n                    {{- message['content'] | trim -}}\n                {%- endif -%}\n            {%- elif message.get('content') is sequence -%}\n                {%- for item in message['content'] -%}\n                    {%- if item.get('type') == 'text' -%}\n                        {%- if role == 'model' -%}\n                            {{- strip_thinking(item['text']) -}}\n                        {%- else -%}\n                            {{- item['text'] | trim -}}\n                        {%- endif -%}\n                    {%- elif item.get('type') in ['image', 'image_url'] -%}\n                        {{- '<|image|>' -}}\n                    {%- elif item.get('type') in ['audio', 'input_audio'] -%}\n                        {{- '<|audio|>' -}}\n                    {%- elif item.get('type') == 'video' -%}\n                        {{- '<|video|>' -}}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n            {%- endset -%}\n\n            {{- captured_content -}}\n            {%- set has_content = captured_content | trim | length > 0 -%}\n\n        {#- Forward-scan: find next non-tool message role for continuation detection -#}\n        {%- set next_nt = namespace(role=None, found=false) -%}\n        {%- for j in range(loop.index0 + 1, loop_messages | length) -%}\n            {%- if not next_nt.found -%}\n                {%- if loop_messages[j]['role'] != 'tool' -%}\n                    {%- set next_nt.role = loop_messages[j]['role'] -%}\n                    {%- set next_nt.found = true -%}\n                {%- endif -%}\n            {%- endif -%}\n        {%- endfor -%}\n\n        {%- set continues_into_next = (\n            role == 'model'\n            and next_nt.role == 'assistant'\n            and (not message.get('tool_calls') or ns_tr_out.flag)\n        ) -%}\n\n        {%- if ns.prev_message_type == 'tool_call' and not ns_tr_out.flag -%}\n            {{- '<|tool_response>' -}}\n        {%- elif continues_into_next -%}\n        {%- elif not (ns_tr_out.flag and not has_content and not next_nt.found) -%}\n            {{- '<turn|>\\n' -}}\n        {%- endif -%}\n\n    {#- Track previous non-tool role for next iteration (avoids O(n) backward scan) -#}\n    {%- set ns.prev_non_tool_role = message['role'] -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{%- if add_generation_prompt -%}\n    {%- if ns.prev_message_type != 'tool_response' and ns.prev_message_type != 'tool_call' -%}\n        {{- '<|turn>model\\n' -}}\n        {%- if not enable_thinking -%}\n            {{- '<|channel>thought\\n<channel|>' -}}\n        {%- endif -%}\n    {%- elif ns.prev_message_type == 'tool_response' and enable_thinking -%}\n        {{- '<|channel>thought\\n' -}}\n    {%- endif -%}\n{%- endif -%}",
+    "build_info": "b1-99b9548",
+    "modalities": {
+      "vision": false,
+      "video": false,
+      "audio": false
+    }
+  },
+  "tokenize": {
+    "A": [
+      [
+        236776,
+        "A"
+      ]
+    ],
+    " A": [
+      [
+        562,
+        " A"
+      ]
+    ],
+    "B": [
+      [
+        236799,
+        "B"
+      ]
+    ],
+    " B": [
+      [
+        603,
+        " B"
+      ]
+    ],
+    "答案：": [
+      [
+        56996,
+        "答案"
+      ],
+      [
+        237184,
+        "："
+      ]
+    ],
+    "答案：A": [
+      [
+        56996,
+        "答案"
+      ],
+      [
+        237184,
+        "："
+      ],
+      [
+        236776,
+        "A"
+      ]
+    ],
+    "答案： A": [
+      [
+        56996,
+        "答案"
+      ],
+      [
+        237184,
+        "："
+      ],
+      [
+        562,
+        " A"
+      ]
+    ],
+    "答案：\nA": [
+      [
+        56996,
+        "答案"
+      ],
+      [
+        237184,
+        "："
+      ],
+      [
+        107,
+        "\n"
+      ],
+      [
+        236776,
+        "A"
+      ]
+    ]
+  },
+  "label_token_ids": {
+    "A": 236776,
+    "B": 236799,
+    "C": 236780,
+    "D": 236796,
+    "E": 236788,
+    "F": 236811,
+    "G": 236823,
+    "H": 236814,
+    "I": 236777,
+    "J": 236863
+  },
+  "variants": {
+    "nothink+sys+prefill_答案：": {
+      "template": "<|turn>system\n§SYSMARK§<turn|>\n<|turn>user\n§USRMARK§<turn|>\n<|turn>model\n<|channel>thought\n<channel|>",
+      "server_honored_kwargs": true,
+      "example_prompt": "<|turn>system\n你是產線決策引擎。只回答一個字母。<turn|>\n<|turn>user\n【狀態】\nSMT-L3 回焊爐 R-02 第 4 區溫度 245°C 超上限 10°C 持續 3 分鐘，板子仍在爐內\n\n【問題】這則 alarm 的處置急迫度？\nA. 不急\nB. 盡快\nC. 停線\n\n只回答代表正確選項的字母。<turn|>\n<|turn>model\n<|channel>thought\n<channel|>答案：",
+      "rows": [
+        {
+          "probs": {
+            "C": 0.9968601835623943,
+            "B": 0.0021704106079144716,
+            "A": 0.000969405829691372
+          },
+          "missing": [],
+          "latency_ms": 147.28355699999796,
+          "option_mass": 0.9974047939216462,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 119,
+          "tokens_cached": 119,
+          "raw_logprobs": {
+            "C": -0.0057433354668319225,
+            "B": -6.135437488555908,
+            "A": -6.941425800323486
+          },
+          "top_tokens": [
+            {
+              "token": "C",
+              "logprob": -0.0057433354668319225
+            },
+            {
+              "token": "B",
+              "logprob": -6.135437488555908
+            },
+            {
+              "token": " C",
+              "logprob": -6.272474765777588
+            },
+            {
+              "token": "A",
+              "logprob": -6.941425800323486
+            },
+            {
+              "token": "\n",
+              "logprob": -8.414888381958008
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -8.932609558105469
+            },
+            {
+              "token": "**",
+              "logprob": -9.929119110107422
+            },
+            {
+              "token": "\n\n",
+              "logprob": -10.338665008544922
+            },
+            {
+              "token": "}",
+              "logprob": -10.905576705932617
+            },
+            {
+              "token": "\\",
+              "logprob": -11.3709716796875
+            }
+          ],
+          "server_prompt_ms": 138.378,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 119,
+          "server_cache_n": 0,
+          "id": "s1",
+          "gold": "C",
+          "rep": 0,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "C": 0.997169819455675,
+            "B": 0.0018359560122943805,
+            "A": 0.0009942245320307922
+          },
+          "missing": [],
+          "latency_ms": 73.81324900000052,
+          "option_mass": 0.9972195939343055,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 119,
+          "tokens_cached": 119,
+          "raw_logprobs": {
+            "C": -0.005618471652269363,
+            "B": -6.302974224090576,
+            "A": -6.916331768035889
+          },
+          "top_tokens": [
+            {
+              "token": "C",
+              "logprob": -0.005618471652269363
+            },
+            {
+              "token": " C",
+              "logprob": -6.176869869232178
+            },
+            {
+              "token": "B",
+              "logprob": -6.302974224090576
+            },
+            {
+              "token": "A",
+              "logprob": -6.916331768035889
+            },
+            {
+              "token": "\n",
+              "logprob": -8.44921588897705
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -8.86815357208252
+            },
+            {
+              "token": "**",
+              "logprob": -9.861111640930176
+            },
+            {
+              "token": "\n\n",
+              "logprob": -10.370854377746582
+            },
+            {
+              "token": "}",
+              "logprob": -10.999672889709473
+            },
+            {
+              "token": "?",
+              "logprob": -11.407328605651855
+            }
+          ],
+          "server_prompt_ms": 65.663,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 118,
+          "id": "s1",
+          "gold": "C",
+          "rep": 1,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "A": 0.9882205583968561,
+            "C": 0.0075252360550630525,
+            "B": 0.004200873643684289,
+            "E": 3.738832794945088e-05,
+            "D": 1.5943576447177382e-05
+          },
+          "missing": [],
+          "latency_ms": 115.32924800000188,
+          "option_mass": 0.9992622391677382,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 104,
+          "tokens_cached": 104,
+          "raw_logprobs": {
+            "A": -0.012587402015924454,
+            "C": -4.890231132507324,
+            "B": -5.473200798034668,
+            "E": -10.194890022277832,
+            "D": -11.047192573547363
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.012587402015924454
+            },
+            {
+              "token": "C",
+              "logprob": -4.890231132507324
+            },
+            {
+              "token": "B",
+              "logprob": -5.473200798034668
+            },
+            {
+              "token": " A",
+              "logprob": -7.884325981140137
+            },
+            {
+              "token": "\n",
+              "logprob": -9.065871238708496
+            },
+            {
+              "token": "**",
+              "logprob": -10.090786933898926
+            },
+            {
+              "token": "E",
+              "logprob": -10.194890022277832
+            },
+            {
+              "token": "Ａ",
+              "logprob": -10.864642143249512
+            },
+            {
+              "token": "?",
+              "logprob": -11.040925025939941
+            },
+            {
+              "token": "D",
+              "logprob": -11.047192573547363
+            }
+          ],
+          "server_prompt_ms": 86.163,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 79,
+          "server_cache_n": 25,
+          "id": "s2",
+          "gold": "A",
+          "rep": 0,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "A": 0.9882609858582201,
+            "C": 0.007578754358570771,
+            "B": 0.004103751946585933,
+            "E": 3.9074617155100996e-05,
+            "D": 1.7433219468127303e-05
+          },
+          "missing": [],
+          "latency_ms": 66.88800299999897,
+          "option_mass": 0.9991675029358537,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 104,
+          "tokens_cached": 104,
+          "raw_logprobs": {
+            "A": -0.012641304172575474,
+            "C": -4.883239269256592,
+            "B": -5.4966864585876465,
+            "E": -10.150870323181152,
+            "D": -10.957965850830078
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.012641304172575474
+            },
+            {
+              "token": "C",
+              "logprob": -4.883239269256592
+            },
+            {
+              "token": "B",
+              "logprob": -5.4966864585876465
+            },
+            {
+              "token": " A",
+              "logprob": -7.694995403289795
+            },
+            {
+              "token": "\n",
+              "logprob": -8.958195686340332
+            },
+            {
+              "token": "**",
+              "logprob": -10.100831031799316
+            },
+            {
+              "token": "E",
+              "logprob": -10.150870323181152
+            },
+            {
+              "token": "D",
+              "logprob": -10.957965850830078
+            },
+            {
+              "token": "Ａ",
+              "logprob": -10.980690002441406
+            },
+            {
+              "token": "?",
+              "logprob": -11.022336959838867
+            }
+          ],
+          "server_prompt_ms": 60.818,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 103,
+          "id": "s2",
+          "gold": "A",
+          "rep": 1,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "B": 0.9999551894388727,
+            "A": 4.481056112725506e-05
+          },
+          "missing": [],
+          "latency_ms": 118.06609399999957,
+          "option_mass": 0.9982567123639328,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 121,
+          "tokens_cached": 121,
+          "raw_logprobs": {
+            "B": -0.0017896204954013228,
+            "A": -10.014811515808105
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.0017896204954013228
+            },
+            {
+              "token": " B",
+              "logprob": -7.006950855255127
+            },
+            {
+              "token": "\n",
+              "logprob": -8.525622367858887
+            },
+            {
+              "token": "",
+              "logprob": -9.897051811218262
+            },
+            {
+              "token": "A",
+              "logprob": -10.014811515808105
+            },
+            {
+              "token": "**",
+              "logprob": -10.118310928344727
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -10.224858283996582
+            },
+            {
+              "token": "否",
+              "logprob": -10.30432415008545
+            },
+            {
+              "token": "是",
+              "logprob": -10.400553703308105
+            },
+            {
+              "token": "\n\n",
+              "logprob": -10.703022003173828
+            }
+          ],
+          "server_prompt_ms": 89.968,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 96,
+          "server_cache_n": 25,
+          "id": "s3",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 0.999956528165793,
+            "A": 4.347183420699729e-05
+          },
+          "missing": [],
+          "latency_ms": 66.64302599999772,
+          "option_mass": 0.998245242607111,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 121,
+          "tokens_cached": 121,
+          "raw_logprobs": {
+            "B": -0.001799771562218666,
+            "A": -10.045153617858887
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.001799771562218666
+            },
+            {
+              "token": " B",
+              "logprob": -7.006869316101074
+            },
+            {
+              "token": "\n",
+              "logprob": -8.543910026550293
+            },
+            {
+              "token": "",
+              "logprob": -9.913796424865723
+            },
+            {
+              "token": "A",
+              "logprob": -10.045153617858887
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -10.178238868713379
+            },
+            {
+              "token": "**",
+              "logprob": -10.183365821838379
+            },
+            {
+              "token": "否",
+              "logprob": -10.226387977600098
+            },
+            {
+              "token": "是",
+              "logprob": -10.344071388244629
+            },
+            {
+              "token": "\n\n",
+              "logprob": -10.679764747619629
+            }
+          ],
+          "server_prompt_ms": 60.246,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 120,
+          "id": "s3",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "A": 0.9424041993089481,
+            "C": 0.026342728486710234,
+            "D": 0.01882127256069605,
+            "B": 0.012431799643645504
+          },
+          "missing": [],
+          "latency_ms": 122.63764400000099,
+          "option_mass": 0.999794204114283,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 114,
+          "tokens_cached": 114,
+          "raw_logprobs": {
+            "A": -0.059526827186346054,
+            "C": -3.6367688179016113,
+            "D": -3.972973346710205,
+            "B": -4.3877034187316895
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.059526827186346054
+            },
+            {
+              "token": "C",
+              "logprob": -3.6367688179016113
+            },
+            {
+              "token": "D",
+              "logprob": -3.972973346710205
+            },
+            {
+              "token": "B",
+              "logprob": -4.3877034187316895
+            },
+            {
+              "token": "**",
+              "logprob": -9.976484298706055
+            },
+            {
+              "token": "\n",
+              "logprob": -10.086679458618164
+            },
+            {
+              "token": " A",
+              "logprob": -10.399430274963379
+            },
+            {
+              "token": "?",
+              "logprob": -11.837462425231934
+            },
+            {
+              "token": "E",
+              "logprob": -11.901180267333984
+            },
+            {
+              "token": "Ａ",
+              "logprob": -12.405522346496582
+            }
+          ],
+          "server_prompt_ms": 89.391,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 89,
+          "server_cache_n": 25,
+          "id": "s4",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "A": 0.9440565312409743,
+            "C": 0.02453294160410616,
+            "D": 0.019094502333707596,
+            "B": 0.012316024821211871
+          },
+          "missing": [],
+          "latency_ms": 67.09869099999821,
+          "option_mass": 0.9997822188976611,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 114,
+          "tokens_cached": 114,
+          "raw_logprobs": {
+            "A": -0.057787034660577774,
+            "C": -3.707956314086914,
+            "D": -3.9585726261138916,
+            "B": -4.397071838378906
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.057787034660577774
+            },
+            {
+              "token": "C",
+              "logprob": -3.707956314086914
+            },
+            {
+              "token": "D",
+              "logprob": -3.9585726261138916
+            },
+            {
+              "token": "B",
+              "logprob": -4.397071838378906
+            },
+            {
+              "token": "**",
+              "logprob": -9.924808502197266
+            },
+            {
+              "token": "\n",
+              "logprob": -9.93181037902832
+            },
+            {
+              "token": " A",
+              "logprob": -10.387739181518555
+            },
+            {
+              "token": "?",
+              "logprob": -11.819908142089844
+            },
+            {
+              "token": "E",
+              "logprob": -11.931198120117188
+            },
+            {
+              "token": "Ａ",
+              "logprob": -12.303019523620605
+            }
+          ],
+          "server_prompt_ms": 61.086,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 113,
+          "id": "s4",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "B": 0.9991632960804345,
+            "A": 0.0008367039195655639
+          },
+          "missing": [],
+          "latency_ms": 120.73720399999743,
+          "option_mass": 0.9884493595954813,
+          "first_token": "放大",
+          "first_token_id": 131440,
+          "prompt_tokens": 117,
+          "tokens_cached": 117,
+          "raw_logprobs": {
+            "B": -0.012454921379685402,
+            "A": -7.097658157348633
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.012454921379685402
+            },
+            {
+              "token": " B",
+              "logprob": -4.800640106201172
+            },
+            {
+              "token": "A",
+              "logprob": -7.097658157348633
+            },
+            {
+              "token": "\n",
+              "logprob": -7.114019393920898
+            },
+            {
+              "token": "否",
+              "logprob": -7.842935562133789
+            },
+            {
+              "token": "**",
+              "logprob": -8.257740020751953
+            },
+            {
+              "token": "不是",
+              "logprob": -8.571640014648438
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -8.990438461303711
+            },
+            {
+              "token": "\n\n",
+              "logprob": -9.02552604675293
+            },
+            {
+              "token": "",
+              "logprob": -9.315866470336914
+            }
+          ],
+          "server_prompt_ms": 89.607,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 92,
+          "server_cache_n": 25,
+          "id": "s5",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 0.9991219797576225,
+            "A": 0.0008780202423774991
+          },
+          "missing": [],
+          "latency_ms": 67.04702900000115,
+          "option_mass": 0.9887296388258924,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 117,
+          "tokens_cached": 117,
+          "raw_logprobs": {
+            "B": -0.012212758883833885,
+            "A": -7.049175262451172
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.012212758883833885
+            },
+            {
+              "token": " B",
+              "logprob": -4.8153839111328125
+            },
+            {
+              "token": "A",
+              "logprob": -7.049175262451172
+            },
+            {
+              "token": "\n",
+              "logprob": -7.079324722290039
+            },
+            {
+              "token": "否",
+              "logprob": -7.930637359619141
+            },
+            {
+              "token": "**",
+              "logprob": -8.343774795532227
+            },
+            {
+              "token": "不是",
+              "logprob": -8.788806915283203
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -8.995054244995117
+            },
+            {
+              "token": "\n\n",
+              "logprob": -9.075777053833008
+            },
+            {
+              "token": "",
+              "logprob": -9.088117599487305
+            }
+          ],
+          "server_prompt_ms": 60.799,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 116,
+          "id": "s5",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        }
+      ]
+    },
+    "nothink+sys+noprefill": {
+      "template": "<|turn>system\n§SYSMARK§<turn|>\n<|turn>user\n§USRMARK§<turn|>\n<|turn>model\n<|channel>thought\n<channel|>",
+      "server_honored_kwargs": true,
+      "example_prompt": "<|turn>system\n你是產線決策引擎。只回答一個字母。<turn|>\n<|turn>user\n【狀態】\nSMT-L3 回焊爐 R-02 第 4 區溫度 245°C 超上限 10°C 持續 3 分鐘，板子仍在爐內\n\n【問題】這則 alarm 的處置急迫度？\nA. 不急\nB. 盡快\nC. 停線\n\n只回答代表正確選項的字母。<turn|>\n<|turn>model\n<|channel>thought\n<channel|>",
+      "rows": [
+        {
+          "probs": {
+            "C": 0.999947457209214,
+            "B": 4.988277103409281e-05,
+            "A": 2.6600197520301637e-06
+          },
+          "missing": [],
+          "latency_ms": 112.96346900000032,
+          "option_mass": 0.9999987793380869,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 117,
+          "tokens_cached": 117,
+          "raw_logprobs": {
+            "C": -5.376483386498876e-05,
+            "B": -9.90583610534668,
+            "A": -12.837178230285645
+          },
+          "top_tokens": [
+            {
+              "token": "C",
+              "logprob": -5.376483386498876e-05
+            },
+            {
+              "token": "B",
+              "logprob": -9.90583610534668
+            },
+            {
+              "token": "A",
+              "logprob": -12.837178230285645
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -14.524154663085938
+            },
+            {
+              "token": " C",
+              "logprob": -14.766644477844238
+            },
+            {
+              "token": "С",
+              "logprob": -15.123332977294922
+            },
+            {
+              "token": "c",
+              "logprob": -15.618940353393555
+            },
+            {
+              "token": "T",
+              "logprob": -16.137603759765625
+            },
+            {
+              "token": "|",
+              "logprob": -16.71009063720703
+            },
+            {
+              "token": "I",
+              "logprob": -17.075759887695312
+            }
+          ],
+          "server_prompt_ms": 69.632,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 116,
+          "id": "s1",
+          "gold": "C",
+          "rep": 0,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "C": 0.999947457209214,
+            "B": 4.988277103409281e-05,
+            "A": 2.6600197520301637e-06
+          },
+          "missing": [],
+          "latency_ms": 63.018261999999936,
+          "option_mass": 0.9999987793380869,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 117,
+          "tokens_cached": 117,
+          "raw_logprobs": {
+            "C": -5.376483386498876e-05,
+            "B": -9.90583610534668,
+            "A": -12.837178230285645
+          },
+          "top_tokens": [
+            {
+              "token": "C",
+              "logprob": -5.376483386498876e-05
+            },
+            {
+              "token": "B",
+              "logprob": -9.90583610534668
+            },
+            {
+              "token": "A",
+              "logprob": -12.837178230285645
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -14.524154663085938
+            },
+            {
+              "token": " C",
+              "logprob": -14.766644477844238
+            },
+            {
+              "token": "С",
+              "logprob": -15.123332977294922
+            },
+            {
+              "token": "c",
+              "logprob": -15.618940353393555
+            },
+            {
+              "token": "T",
+              "logprob": -16.137603759765625
+            },
+            {
+              "token": "|",
+              "logprob": -16.71009063720703
+            },
+            {
+              "token": "I",
+              "logprob": -17.075759887695312
+            }
+          ],
+          "server_prompt_ms": 56.56,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 116,
+          "id": "s1",
+          "gold": "C",
+          "rep": 1,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "A": 0.9884676763592659,
+            "C": 0.010120426113119774,
+            "B": 0.0014050518223927262,
+            "E": 5.3856179656300074e-06,
+            "D": 1.460087255741598e-06
+          },
+          "missing": [],
+          "latency_ms": 97.22799899999757,
+          "option_mass": 0.9999950116911744,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 102,
+          "tokens_cached": 102,
+          "raw_logprobs": {
+            "A": -0.011604324914515018,
+            "C": -4.593204498291016,
+            "B": -6.567686080932617,
+            "E": -12.131783485412598,
+            "D": -13.437019348144531
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.011604324914515018
+            },
+            {
+              "token": "C",
+              "logprob": -4.593204498291016
+            },
+            {
+              "token": "B",
+              "logprob": -6.567686080932617
+            },
+            {
+              "token": "E",
+              "logprob": -12.131783485412598
+            },
+            {
+              "token": "D",
+              "logprob": -13.437019348144531
+            },
+            {
+              "token": "T",
+              "logprob": -13.983302116394043
+            },
+            {
+              "token": "А",
+              "logprob": -14.245444297790527
+            },
+            {
+              "token": "I",
+              "logprob": -14.624645233154297
+            },
+            {
+              "token": "|",
+              "logprob": -14.762497901916504
+            },
+            {
+              "token": "F",
+              "logprob": -14.903427124023438
+            }
+          ],
+          "server_prompt_ms": 56.534,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 101,
+          "id": "s2",
+          "gold": "A",
+          "rep": 0,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "A": 0.9884676763592659,
+            "C": 0.010120426113119774,
+            "B": 0.0014050518223927262,
+            "E": 5.3856179656300074e-06,
+            "D": 1.460087255741598e-06
+          },
+          "missing": [],
+          "latency_ms": 63.353342999999285,
+          "option_mass": 0.9999950116911744,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 102,
+          "tokens_cached": 102,
+          "raw_logprobs": {
+            "A": -0.011604324914515018,
+            "C": -4.593204498291016,
+            "B": -6.567686080932617,
+            "E": -12.131783485412598,
+            "D": -13.437019348144531
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.011604324914515018
+            },
+            {
+              "token": "C",
+              "logprob": -4.593204498291016
+            },
+            {
+              "token": "B",
+              "logprob": -6.567686080932617
+            },
+            {
+              "token": "E",
+              "logprob": -12.131783485412598
+            },
+            {
+              "token": "D",
+              "logprob": -13.437019348144531
+            },
+            {
+              "token": "T",
+              "logprob": -13.983302116394043
+            },
+            {
+              "token": "А",
+              "logprob": -14.245444297790527
+            },
+            {
+              "token": "I",
+              "logprob": -14.624645233154297
+            },
+            {
+              "token": "|",
+              "logprob": -14.762497901916504
+            },
+            {
+              "token": "F",
+              "logprob": -14.903427124023438
+            }
+          ],
+          "server_prompt_ms": 56.571,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 101,
+          "id": "s2",
+          "gold": "A",
+          "rep": 1,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "B": 0.9999999436103729,
+            "A": 5.638962721318654e-08
+          },
+          "missing": [],
+          "latency_ms": 95.71219300000067,
+          "option_mass": 0.9999996987617487,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 119,
+          "tokens_cached": 119,
+          "raw_logprobs": {
+            "B": -3.576279254957626e-07,
+            "A": -16.690980911254883
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -3.576279254957626e-07
+            },
+            {
+              "token": " B",
+              "logprob": -15.766215324401855
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -16.501834869384766
+            },
+            {
+              "token": "否",
+              "logprob": -16.60636329650879
+            },
+            {
+              "token": "A",
+              "logprob": -16.690980911254883
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -16.790027618408203
+            },
+            {
+              "token": ".",
+              "logprob": -17.887224197387695
+            },
+            {
+              "token": "_",
+              "logprob": -18.31148910522461
+            },
+            {
+              "token": "N",
+              "logprob": -18.47022819519043
+            },
+            {
+              "token": "No",
+              "logprob": -18.69623374938965
+            }
+          ],
+          "server_prompt_ms": 56.62,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 118,
+          "id": "s3",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 0.9999999436103729,
+            "A": 5.638962721318654e-08
+          },
+          "missing": [],
+          "latency_ms": 63.48538700000006,
+          "option_mass": 0.9999996987617487,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 119,
+          "tokens_cached": 119,
+          "raw_logprobs": {
+            "B": -3.576279254957626e-07,
+            "A": -16.690980911254883
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -3.576279254957626e-07
+            },
+            {
+              "token": " B",
+              "logprob": -15.766215324401855
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -16.501834869384766
+            },
+            {
+              "token": "否",
+              "logprob": -16.60636329650879
+            },
+            {
+              "token": "A",
+              "logprob": -16.690980911254883
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -16.790027618408203
+            },
+            {
+              "token": ".",
+              "logprob": -17.887224197387695
+            },
+            {
+              "token": "_",
+              "logprob": -18.31148910522461
+            },
+            {
+              "token": "N",
+              "logprob": -18.47022819519043
+            },
+            {
+              "token": "No",
+              "logprob": -18.69623374938965
+            }
+          ],
+          "server_prompt_ms": 56.711,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 118,
+          "id": "s3",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "A": 0.9920033546050149,
+            "B": 0.003786851057208797,
+            "C": 0.0030560699434908616,
+            "D": 0.001153724394285419
+          },
+          "missing": [],
+          "latency_ms": 98.57899000000003,
+          "option_mass": 0.9999827824777585,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 112,
+          "tokens_cached": 112,
+          "raw_logprobs": {
+            "A": -0.008046007715165615,
+            "B": -5.576237678527832,
+            "C": -5.790642738342285,
+            "D": -6.764777183532715
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.008046007715165615
+            },
+            {
+              "token": "B",
+              "logprob": -5.576237678527832
+            },
+            {
+              "token": "C",
+              "logprob": -5.790642738342285
+            },
+            {
+              "token": "D",
+              "logprob": -6.764777183532715
+            },
+            {
+              "token": "T",
+              "logprob": -12.531831741333008
+            },
+            {
+              "token": "E",
+              "logprob": -12.592667579650879
+            },
+            {
+              "token": "F",
+              "logprob": -13.677431106567383
+            },
+            {
+              "token": "S",
+              "logprob": -13.906803131103516
+            },
+            {
+              "token": "R",
+              "logprob": -14.021007537841797
+            },
+            {
+              "token": "А",
+              "logprob": -14.068963050842285
+            }
+          ],
+          "server_prompt_ms": 56.754,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 111,
+          "id": "s4",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "A": 0.9920033546050149,
+            "B": 0.003786851057208797,
+            "C": 0.0030560699434908616,
+            "D": 0.001153724394285419
+          },
+          "missing": [],
+          "latency_ms": 63.374828999997135,
+          "option_mass": 0.9999827824777585,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 112,
+          "tokens_cached": 112,
+          "raw_logprobs": {
+            "A": -0.008046007715165615,
+            "B": -5.576237678527832,
+            "C": -5.790642738342285,
+            "D": -6.764777183532715
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.008046007715165615
+            },
+            {
+              "token": "B",
+              "logprob": -5.576237678527832
+            },
+            {
+              "token": "C",
+              "logprob": -5.790642738342285
+            },
+            {
+              "token": "D",
+              "logprob": -6.764777183532715
+            },
+            {
+              "token": "T",
+              "logprob": -12.531831741333008
+            },
+            {
+              "token": "E",
+              "logprob": -12.592667579650879
+            },
+            {
+              "token": "F",
+              "logprob": -13.677431106567383
+            },
+            {
+              "token": "S",
+              "logprob": -13.906803131103516
+            },
+            {
+              "token": "R",
+              "logprob": -14.021007537841797
+            },
+            {
+              "token": "А",
+              "logprob": -14.068963050842285
+            }
+          ],
+          "server_prompt_ms": 56.844,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 111,
+          "id": "s4",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "B": 0.9999892638633946,
+            "A": 1.0736136605520204e-05
+          },
+          "missing": [],
+          "latency_ms": 98.84810599999838,
+          "option_mass": 0.9999959541413791,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 115,
+          "tokens_cached": 115,
+          "raw_logprobs": {
+            "B": -1.4782061043661088e-05,
+            "A": -11.441899299621582
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -1.4782061043661088e-05
+            },
+            {
+              "token": "A",
+              "logprob": -11.441899299621582
+            },
+            {
+              "token": " B",
+              "logprob": -13.870818138122559
+            },
+            {
+              "token": "否",
+              "logprob": -14.367656707763672
+            },
+            {
+              "token": "N",
+              "logprob": -14.666428565979004
+            },
+            {
+              "token": "C",
+              "logprob": -14.956413269042969
+            },
+            {
+              "token": "F",
+              "logprob": -15.048909187316895
+            },
+            {
+              "token": ".",
+              "logprob": -15.329745292663574
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -15.330365180969238
+            },
+            {
+              "token": "No",
+              "logprob": -15.468392372131348
+            }
+          ],
+          "server_prompt_ms": 56.538,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 114,
+          "id": "s5",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 0.9999892638633946,
+            "A": 1.0736136605520204e-05
+          },
+          "missing": [],
+          "latency_ms": 63.12716200000068,
+          "option_mass": 0.9999959541413791,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 115,
+          "tokens_cached": 115,
+          "raw_logprobs": {
+            "B": -1.4782061043661088e-05,
+            "A": -11.441899299621582
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -1.4782061043661088e-05
+            },
+            {
+              "token": "A",
+              "logprob": -11.441899299621582
+            },
+            {
+              "token": " B",
+              "logprob": -13.870818138122559
+            },
+            {
+              "token": "否",
+              "logprob": -14.367656707763672
+            },
+            {
+              "token": "N",
+              "logprob": -14.666428565979004
+            },
+            {
+              "token": "C",
+              "logprob": -14.956413269042969
+            },
+            {
+              "token": "F",
+              "logprob": -15.048909187316895
+            },
+            {
+              "token": ".",
+              "logprob": -15.329745292663574
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -15.330365180969238
+            },
+            {
+              "token": "No",
+              "logprob": -15.468392372131348
+            }
+          ],
+          "server_prompt_ms": 56.832,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 114,
+          "id": "s5",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        }
+      ]
+    },
+    "nothink+nosys+noprefill": {
+      "template": "<|turn>user\n§USRMARK§<turn|>\n<|turn>model\n<|channel>thought\n<channel|>",
+      "server_honored_kwargs": true,
+      "example_prompt": "<|turn>user\n【狀態】\nSMT-L3 回焊爐 R-02 第 4 區溫度 245°C 超上限 10°C 持續 3 分鐘，板子仍在爐內\n\n【問題】這則 alarm 的處置急迫度？\nA. 不急\nB. 盡快\nC. 停線\n\n只回答代表正確選項的字母。<turn|>\n<|turn>model\n<|channel>thought\n<channel|>",
+      "rows": [
+        {
+          "probs": {
+            "C": 0.8871459489602359,
+            "B": 0.11284539696757523,
+            "A": 8.654072188925617e-06
+          },
+          "missing": [],
+          "latency_ms": 121.58684999999991,
+          "option_mass": 0.9999993809709758,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 100,
+          "tokens_cached": 100,
+          "raw_logprobs": {
+            "C": -0.1197463870048523,
+            "B": -2.181737184524536,
+            "A": -11.65748119354248
+          },
+          "top_tokens": [
+            {
+              "token": "C",
+              "logprob": -0.1197463870048523
+            },
+            {
+              "token": "B",
+              "logprob": -2.181737184524536
+            },
+            {
+              "token": "A",
+              "logprob": -11.65748119354248
+            },
+            {
+              "token": "С",
+              "logprob": -16.045137405395508
+            },
+            {
+              "token": "停",
+              "logprob": -16.1426944732666
+            },
+            {
+              "token": ".",
+              "logprob": -16.27864646911621
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -16.346134185791016
+            },
+            {
+              "token": "|",
+              "logprob": -16.549915313720703
+            },
+            {
+              "token": "D",
+              "logprob": -16.70195770263672
+            },
+            {
+              "token": "[",
+              "logprob": -16.76133918762207
+            }
+          ],
+          "server_prompt_ms": 91.099,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 100,
+          "server_cache_n": 0,
+          "id": "s1",
+          "gold": "C",
+          "rep": 0,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "C": 0.8874709991875475,
+            "B": 0.11252132617906771,
+            "A": 7.674633384908186e-06
+          },
+          "missing": [],
+          "latency_ms": 66.88901499999744,
+          "option_mass": 0.9999992814228953,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 100,
+          "tokens_cached": 100,
+          "raw_logprobs": {
+            "C": -0.1193801537156105,
+            "B": -2.1846132278442383,
+            "A": -11.77759075164795
+          },
+          "top_tokens": [
+            {
+              "token": "C",
+              "logprob": -0.1193801537156105
+            },
+            {
+              "token": "B",
+              "logprob": -2.1846132278442383
+            },
+            {
+              "token": "A",
+              "logprob": -11.77759075164795
+            },
+            {
+              "token": "С",
+              "logprob": -15.995723724365234
+            },
+            {
+              "token": "停",
+              "logprob": -15.995842933654785
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -16.305767059326172
+            },
+            {
+              "token": ".",
+              "logprob": -16.323225021362305
+            },
+            {
+              "token": "|",
+              "logprob": -16.50531768798828
+            },
+            {
+              "token": "D",
+              "logprob": -16.64473533630371
+            },
+            {
+              "token": "[",
+              "logprob": -16.89605140686035
+            }
+          ],
+          "server_prompt_ms": 60.682,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 99,
+          "id": "s1",
+          "gold": "C",
+          "rep": 1,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "A": 0.988789249894036,
+            "C": 0.007460833570914625,
+            "B": 0.003733233683879446,
+            "E": 1.3852395169929857e-05,
+            "D": 2.830456000041122e-06
+          },
+          "missing": [],
+          "latency_ms": 119.35964099999907,
+          "option_mass": 0.9999968160621966,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 85,
+          "tokens_cached": 85,
+          "raw_logprobs": {
+            "A": -0.011277248151600361,
+            "C": -4.8980913162231445,
+            "B": -5.590483665466309,
+            "E": -11.187055587768555,
+            "D": -12.775075912475586
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.011277248151600361
+            },
+            {
+              "token": "C",
+              "logprob": -4.8980913162231445
+            },
+            {
+              "token": "B",
+              "logprob": -5.590483665466309
+            },
+            {
+              "token": "E",
+              "logprob": -11.187055587768555
+            },
+            {
+              "token": "D",
+              "logprob": -12.775075912475586
+            },
+            {
+              "token": "А",
+              "logprob": -14.886568069458008
+            },
+            {
+              "token": "T",
+              "logprob": -15.138465881347656
+            },
+            {
+              "token": "{",
+              "logprob": -15.264598846435547
+            },
+            {
+              "token": "|",
+              "logprob": -15.63322925567627
+            },
+            {
+              "token": "[",
+              "logprob": -15.739778518676758
+            }
+          ],
+          "server_prompt_ms": 88.786,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 85,
+          "server_cache_n": 0,
+          "id": "s2",
+          "gold": "A",
+          "rep": 0,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "A": 0.9877934278045897,
+            "C": 0.008116807960191255,
+            "B": 0.004069284667816445,
+            "E": 1.6771509720921683e-05,
+            "D": 3.7080576818358392e-06
+          },
+          "missing": [],
+          "latency_ms": 67.91075499999977,
+          "option_mass": 0.999996517850248,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 85,
+          "tokens_cached": 85,
+          "raw_logprobs": {
+            "A": -0.012285166420042515,
+            "C": -4.813821792602539,
+            "B": -5.504291534423828,
+            "E": -10.995832443237305,
+            "D": -12.505005836486816
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.012285166420042515
+            },
+            {
+              "token": "C",
+              "logprob": -4.813821792602539
+            },
+            {
+              "token": "B",
+              "logprob": -5.504291534423828
+            },
+            {
+              "token": "E",
+              "logprob": -10.995832443237305
+            },
+            {
+              "token": "D",
+              "logprob": -12.505005836486816
+            },
+            {
+              "token": "А",
+              "logprob": -14.62006664276123
+            },
+            {
+              "token": "T",
+              "logprob": -14.93189525604248
+            },
+            {
+              "token": "{",
+              "logprob": -15.184398651123047
+            },
+            {
+              "token": "|",
+              "logprob": -15.479933738708496
+            },
+            {
+              "token": "#",
+              "logprob": -15.660761833190918
+            }
+          ],
+          "server_prompt_ms": 61.039,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 84,
+          "id": "s2",
+          "gold": "A",
+          "rep": 1,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "B": 0.9999996887639623,
+            "A": 3.1123603769178403e-07
+          },
+          "missing": [],
+          "latency_ms": 117.81855599999957,
+          "option_mass": 0.999999595980203,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 102,
+          "tokens_cached": 102,
+          "raw_logprobs": {
+            "B": -7.152559646783629e-07,
+            "A": -14.982714653015137
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -7.152559646783629e-07
+            },
+            {
+              "token": "A",
+              "logprob": -14.982714653015137
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -15.970027923583984
+            },
+            {
+              "token": "否",
+              "logprob": -16.135189056396484
+            },
+            {
+              "token": " B",
+              "logprob": -16.402713775634766
+            },
+            {
+              "token": ".",
+              "logprob": -17.09871482849121
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -17.48169708251953
+            },
+            {
+              "token": "錯誤",
+              "logprob": -17.92952537536621
+            },
+            {
+              "token": "[",
+              "logprob": -18.252532958984375
+            },
+            {
+              "token": "_",
+              "logprob": -18.43317222595215
+            }
+          ],
+          "server_prompt_ms": 92.088,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 102,
+          "server_cache_n": 0,
+          "id": "s3",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 0.9999996711805026,
+            "A": 3.288194974373215e-07
+          },
+          "missing": [],
+          "latency_ms": 66.7966569999976,
+          "option_mass": 0.9999996135636615,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 102,
+          "tokens_cached": 102,
+          "raw_logprobs": {
+            "B": -7.152559646783629e-07,
+            "A": -14.927757263183594
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -7.152559646783629e-07
+            },
+            {
+              "token": "A",
+              "logprob": -14.927757263183594
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -15.897196769714355
+            },
+            {
+              "token": "否",
+              "logprob": -16.019824981689453
+            },
+            {
+              "token": " B",
+              "logprob": -16.307605743408203
+            },
+            {
+              "token": ".",
+              "logprob": -17.037729263305664
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -17.294782638549805
+            },
+            {
+              "token": "錯誤",
+              "logprob": -17.82466697692871
+            },
+            {
+              "token": "_",
+              "logprob": -18.139522552490234
+            },
+            {
+              "token": "[",
+              "logprob": -18.15991973876953
+            }
+          ],
+          "server_prompt_ms": 60.497,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 101,
+          "id": "s3",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "A": 0.9898344082967949,
+            "C": 0.008939928156971571,
+            "B": 0.0007501209854225299,
+            "D": 0.0004755425608111356
+          },
+          "missing": [],
+          "latency_ms": 114.37404200000145,
+          "option_mass": 0.9999950218117318,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 95,
+          "tokens_cached": 95,
+          "raw_logprobs": {
+            "A": -0.010222592391073704,
+            "C": -4.717232704162598,
+            "B": -7.195281028747559,
+            "D": -7.651059150695801
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.010222592391073704
+            },
+            {
+              "token": "C",
+              "logprob": -4.717232704162598
+            },
+            {
+              "token": "B",
+              "logprob": -7.195281028747559
+            },
+            {
+              "token": "D",
+              "logprob": -7.651059150695801
+            },
+            {
+              "token": "AC",
+              "logprob": -14.206986427307129
+            },
+            {
+              "token": "T",
+              "logprob": -14.47529125213623
+            },
+            {
+              "token": "А",
+              "logprob": -14.749159812927246
+            },
+            {
+              "token": "a",
+              "logprob": -14.963661193847656
+            },
+            {
+              "token": "E",
+              "logprob": -15.117011070251465
+            },
+            {
+              "token": "{",
+              "logprob": -15.355025291442871
+            }
+          ],
+          "server_prompt_ms": 86.756,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 93,
+          "server_cache_n": 2,
+          "id": "s4",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "A": 0.9890546688201431,
+            "C": 0.009615847825755688,
+            "B": 0.0008006480384945242,
+            "D": 0.0005288353156068222
+          },
+          "missing": [],
+          "latency_ms": 67.40523699999912,
+          "option_mass": 0.9999941050720725,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 95,
+          "tokens_cached": 95,
+          "raw_logprobs": {
+            "A": -0.01101156696677208,
+            "C": -4.644348621368408,
+            "B": -7.1300950050354,
+            "D": -7.544839382171631
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.01101156696677208
+            },
+            {
+              "token": "C",
+              "logprob": -4.644348621368408
+            },
+            {
+              "token": "B",
+              "logprob": -7.1300950050354
+            },
+            {
+              "token": "D",
+              "logprob": -7.544839382171631
+            },
+            {
+              "token": "AC",
+              "logprob": -14.029552459716797
+            },
+            {
+              "token": "А",
+              "logprob": -14.621655464172363
+            },
+            {
+              "token": "T",
+              "logprob": -14.663957595825195
+            },
+            {
+              "token": "E",
+              "logprob": -14.968029975891113
+            },
+            {
+              "token": "a",
+              "logprob": -14.989047050476074
+            },
+            {
+              "token": "{",
+              "logprob": -15.368180274963379
+            }
+          ],
+          "server_prompt_ms": 60.902,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 94,
+          "id": "s4",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "B": 0.9732728342921203,
+            "A": 0.026727165707879738
+          },
+          "missing": [],
+          "latency_ms": 115.30219500000172,
+          "option_mass": 0.9994977243602844,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 98,
+          "tokens_cached": 98,
+          "raw_logprobs": {
+            "B": -0.027593232691287994,
+            "A": -3.62257719039917
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.027593232691287994
+            },
+            {
+              "token": "A",
+              "logprob": -3.62257719039917
+            },
+            {
+              "token": "否",
+              "logprob": -7.837708950042725
+            },
+            {
+              "token": "不是",
+              "logprob": -11.26981258392334
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -12.26166820526123
+            },
+            {
+              "token": " B",
+              "logprob": -12.323776245117188
+            },
+            {
+              "token": "No",
+              "logprob": -12.481219291687012
+            },
+            {
+              "token": "C",
+              "logprob": -12.50940990447998
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -12.756083488464355
+            },
+            {
+              "token": "錯誤",
+              "logprob": -12.799942016601562
+            }
+          ],
+          "server_prompt_ms": 89.226,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 90,
+          "server_cache_n": 8,
+          "id": "s5",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 0.9744664607324995,
+            "A": 0.025533539267500405
+          },
+          "missing": [],
+          "latency_ms": 66.50636399999854,
+          "option_mass": 0.9995184181683322,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 98,
+          "tokens_cached": 98,
+          "raw_logprobs": {
+            "B": -0.026346875354647636,
+            "A": -3.6682441234588623
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.026346875354647636
+            },
+            {
+              "token": "A",
+              "logprob": -3.6682441234588623
+            },
+            {
+              "token": "否",
+              "logprob": -7.888601779937744
+            },
+            {
+              "token": "不是",
+              "logprob": -11.343399047851562
+            },
+            {
+              "token": " B",
+              "logprob": -12.246631622314453
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -12.266129493713379
+            },
+            {
+              "token": "No",
+              "logprob": -12.43364429473877
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -12.638607025146484
+            },
+            {
+              "token": "C",
+              "logprob": -12.639469146728516
+            },
+            {
+              "token": "錯誤",
+              "logprob": -12.687344551086426
+            }
+          ],
+          "server_prompt_ms": 60.341,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 97,
+          "id": "s5",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        }
+      ]
+    },
+    "nothink+sys+prefill_答案：空白": {
+      "template": "<|turn>system\n§SYSMARK§<turn|>\n<|turn>user\n§USRMARK§<turn|>\n<|turn>model\n<|channel>thought\n<channel|>",
+      "server_honored_kwargs": true,
+      "example_prompt": "<|turn>system\n你是產線決策引擎。只回答一個字母。<turn|>\n<|turn>user\n【狀態】\nSMT-L3 回焊爐 R-02 第 4 區溫度 245°C 超上限 10°C 持續 3 分鐘，板子仍在爐內\n\n【問題】這則 alarm 的處置急迫度？\nA. 不急\nB. 盡快\nC. 停線\n\n只回答代表正確選項的字母。<turn|>\n<|turn>model\n<|channel>thought\n<channel|>答案： ",
+      "rows": [
+        {
+          "probs": {
+            "C": 1.0
+          },
+          "missing": [
+            "A",
+            "B"
+          ],
+          "latency_ms": 104.34944199999663,
+          "option_mass": 0.12845223296988592,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 120,
+          "tokens_cached": 120,
+          "raw_logprobs": {
+            "C": -2.0521981716156006
+          },
+          "top_tokens": [
+            {
+              "token": "\n",
+              "logprob": -0.7492139339447021
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -1.1627423763275146
+            },
+            {
+              "token": "C",
+              "logprob": -2.0521981716156006
+            },
+            {
+              "token": "\n\n",
+              "logprob": -3.323054075241089
+            },
+            {
+              "token": "答案",
+              "logprob": -4.748345375061035
+            },
+            {
+              "token": "選擇",
+              "logprob": -5.339972972869873
+            },
+            {
+              "token": "錯誤",
+              "logprob": -5.5229339599609375
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -5.691994667053223
+            },
+            {
+              "token": "你的",
+              "logprob": -5.903350830078125
+            },
+            {
+              "token": "⚠️",
+              "logprob": -6.311722755432129
+            }
+          ],
+          "server_prompt_ms": 62.359,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 3,
+          "server_cache_n": 117,
+          "id": "s1",
+          "gold": "C",
+          "rep": 0,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "C": 1.0
+          },
+          "missing": [
+            "A",
+            "B"
+          ],
+          "latency_ms": 66.45230900000243,
+          "option_mass": 0.11413106795962825,
+          "first_token": "\n",
+          "first_token_id": 107,
+          "prompt_tokens": 120,
+          "tokens_cached": 120,
+          "raw_logprobs": {
+            "C": -2.170407772064209
+          },
+          "top_tokens": [
+            {
+              "token": "\n",
+              "logprob": -0.8221887946128845
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -1.020510196685791
+            },
+            {
+              "token": "C",
+              "logprob": -2.170407772064209
+            },
+            {
+              "token": "\n\n",
+              "logprob": -3.379793643951416
+            },
+            {
+              "token": "答案",
+              "logprob": -4.799723148345947
+            },
+            {
+              "token": "選擇",
+              "logprob": -5.093204021453857
+            },
+            {
+              "token": "錯誤",
+              "logprob": -5.3206305503845215
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -5.6171088218688965
+            },
+            {
+              "token": "你的",
+              "logprob": -6.038577556610107
+            },
+            {
+              "token": "⚠️",
+              "logprob": -6.3553338050842285
+            }
+          ],
+          "server_prompt_ms": 60.017,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 119,
+          "id": "s1",
+          "gold": "C",
+          "rep": 1,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "A": 1.0
+          },
+          "missing": [
+            "B",
+            "C",
+            "D",
+            "E"
+          ],
+          "latency_ms": 105.82194799999911,
+          "option_mass": 0.00038198340222922445,
+          "first_token": "\n",
+          "first_token_id": 107,
+          "prompt_tokens": 105,
+          "tokens_cached": 105,
+          "raw_logprobs": {
+            "A": -7.870133399963379
+          },
+          "top_tokens": [
+            {
+              "token": "\n",
+              "logprob": -0.11087057739496231
+            },
+            {
+              "token": "\n\n",
+              "logprob": -3.50502610206604
+            },
+            {
+              "token": "既然",
+              "logprob": -4.696587562561035
+            },
+            {
+              "token": "關於",
+              "logprob": -4.703909397125244
+            },
+            {
+              "token": "答案",
+              "logprob": -5.577998638153076
+            },
+            {
+              "token": "內容",
+              "logprob": -6.011736869812012
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -6.067008018493652
+            },
+            {
+              "token": "你的",
+              "logprob": -6.357880592346191
+            },
+            {
+              "token": "您的",
+              "logprob": -6.363120079040527
+            },
+            {
+              "token": "針對",
+              "logprob": -6.410530090332031
+            }
+          ],
+          "server_prompt_ms": 61.683,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 3,
+          "server_cache_n": 102,
+          "id": "s2",
+          "gold": "A",
+          "rep": 0,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "A": 1.0
+          },
+          "missing": [
+            "B",
+            "C",
+            "D",
+            "E"
+          ],
+          "latency_ms": 66.31628699999936,
+          "option_mass": 0.0006519235809808755,
+          "first_token": "\n",
+          "first_token_id": 107,
+          "prompt_tokens": 105,
+          "tokens_cached": 105,
+          "raw_logprobs": {
+            "A": -7.335583209991455
+          },
+          "top_tokens": [
+            {
+              "token": "\n",
+              "logprob": -0.12246200442314148
+            },
+            {
+              "token": "\n\n",
+              "logprob": -3.4402129650115967
+            },
+            {
+              "token": "關於",
+              "logprob": -4.570857048034668
+            },
+            {
+              "token": "既然",
+              "logprob": -4.856151103973389
+            },
+            {
+              "token": "答案",
+              "logprob": -5.534039497375488
+            },
+            {
+              "token": "內容",
+              "logprob": -6.0215559005737305
+            },
+            {
+              "token": "您的",
+              "logprob": -6.05989933013916
+            },
+            {
+              "token": "你的",
+              "logprob": -6.106312274932861
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -6.165389060974121
+            },
+            {
+              "token": "針對",
+              "logprob": -6.223278045654297
+            }
+          ],
+          "server_prompt_ms": 60.113,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 104,
+          "id": "s2",
+          "gold": "A",
+          "rep": 1,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "B": 1.0
+          },
+          "missing": [
+            "A"
+          ],
+          "latency_ms": 104.45026799999724,
+          "option_mass": 0.45227267169983393,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 122,
+          "tokens_cached": 122,
+          "raw_logprobs": {
+            "B": -0.793470025062561
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.793470025062561
+            },
+            {
+              "token": "\n",
+              "logprob": -1.3383556604385376
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -2.1674017906188965
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -3.1881508827209473
+            },
+            {
+              "token": "否",
+              "logprob": -3.676779270172119
+            },
+            {
+              "token": "\n\n",
+              "logprob": -3.965111494064331
+            },
+            {
+              "token": "錯誤",
+              "logprob": -4.215656757354736
+            },
+            {
+              "token": "這是",
+              "logprob": -5.28248929977417
+            },
+            {
+              "token": "❌",
+              "logprob": -5.468921184539795
+            },
+            {
+              "token": "答案",
+              "logprob": -5.773767948150635
+            }
+          ],
+          "server_prompt_ms": 62.163,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 3,
+          "server_cache_n": 119,
+          "id": "s3",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 1.0
+          },
+          "missing": [
+            "A"
+          ],
+          "latency_ms": 66.82965299999921,
+          "option_mass": 0.4421685568153529,
+          "first_token": "\n",
+          "first_token_id": 107,
+          "prompt_tokens": 122,
+          "tokens_cached": 122,
+          "raw_logprobs": {
+            "B": -0.8160641193389893
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.8160641193389893
+            },
+            {
+              "token": "\n",
+              "logprob": -1.2218611240386963
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -2.2282841205596924
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -3.3794214725494385
+            },
+            {
+              "token": "否",
+              "logprob": -3.810293436050415
+            },
+            {
+              "token": "\n\n",
+              "logprob": -3.9004738330841064
+            },
+            {
+              "token": "錯誤",
+              "logprob": -4.208085060119629
+            },
+            {
+              "token": "這是",
+              "logprob": -5.515288829803467
+            },
+            {
+              "token": "❌",
+              "logprob": -5.578469276428223
+            },
+            {
+              "token": "答案",
+              "logprob": -5.857638835906982
+            }
+          ],
+          "server_prompt_ms": 60.28,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 121,
+          "id": "s3",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        },
+        {
+          "probs": {},
+          "missing": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "latency_ms": 101.84813000000048,
+          "option_mass": 0.0,
+          "first_token": "\n",
+          "first_token_id": 107,
+          "prompt_tokens": 115,
+          "tokens_cached": 115,
+          "raw_logprobs": {},
+          "top_tokens": [
+            {
+              "token": "\n",
+              "logprob": -0.5140814185142517
+            },
+            {
+              "token": "答案",
+              "logprob": -2.4880611896514893
+            },
+            {
+              "token": "停",
+              "logprob": -3.4335999488830566
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -3.848175525665283
+            },
+            {
+              "token": "既然",
+              "logprob": -4.619266986846924
+            },
+            {
+              "token": "預",
+              "logprob": -4.6539530754089355
+            },
+            {
+              "token": "停止",
+              "logprob": -4.682410717010498
+            },
+            {
+              "token": "執行",
+              "logprob": -4.834496021270752
+            },
+            {
+              "token": "門",
+              "logprob": -4.930677890777588
+            },
+            {
+              "token": "想要",
+              "logprob": -4.994633197784424
+            }
+          ],
+          "server_prompt_ms": 61.576,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 3,
+          "server_cache_n": 112,
+          "id": "s4",
+          "gold": "B",
+          "rep": 0,
+          "chosen": null
+        },
+        {
+          "probs": {},
+          "missing": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "latency_ms": 67.20599599999844,
+          "option_mass": 0.0,
+          "first_token": "弄",
+          "first_token_id": 240859,
+          "prompt_tokens": 115,
+          "tokens_cached": 115,
+          "raw_logprobs": {},
+          "top_tokens": [
+            {
+              "token": "\n",
+              "logprob": -0.3740919530391693
+            },
+            {
+              "token": "答案",
+              "logprob": -2.9443414211273193
+            },
+            {
+              "token": "停",
+              "logprob": -3.5149784088134766
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -4.2530927658081055
+            },
+            {
+              "token": "既然",
+              "logprob": -4.712065696716309
+            },
+            {
+              "token": "預",
+              "logprob": -4.847476005554199
+            },
+            {
+              "token": "停止",
+              "logprob": -4.866260528564453
+            },
+            {
+              "token": "執行",
+              "logprob": -5.051440238952637
+            },
+            {
+              "token": "呼",
+              "logprob": -5.064701080322266
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -5.126376152038574
+            }
+          ],
+          "server_prompt_ms": 60.119,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 114,
+          "id": "s4",
+          "gold": "B",
+          "rep": 1,
+          "chosen": null
+        },
+        {
+          "probs": {
+            "B": 1.0
+          },
+          "missing": [
+            "A"
+          ],
+          "latency_ms": 107.5176649999996,
+          "option_mass": 0.12449515688507959,
+          "first_token": "否",
+          "first_token_id": 238627,
+          "prompt_tokens": 118,
+          "tokens_cached": 118,
+          "raw_logprobs": {
+            "B": -2.0834884643554688
+          },
+          "top_tokens": [
+            {
+              "token": "否",
+              "logprob": -0.22723855078220367
+            },
+            {
+              "token": "B",
+              "logprob": -2.0834884643554688
+            },
+            {
+              "token": "\n",
+              "logprob": -3.3080928325653076
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -4.305590629577637
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -5.214515686035156
+            },
+            {
+              "token": "\n\n",
+              "logprob": -5.812839508056641
+            },
+            {
+              "token": "錯誤",
+              "logprob": -5.817682266235352
+            },
+            {
+              "token": "沒",
+              "logprob": -6.6586456298828125
+            },
+            {
+              "token": "既然",
+              "logprob": -6.7633514404296875
+            },
+            {
+              "token": "且",
+              "logprob": -7.266058921813965
+            }
+          ],
+          "server_prompt_ms": 61.762,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 3,
+          "server_cache_n": 115,
+          "id": "s5",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 1.0
+          },
+          "missing": [
+            "A"
+          ],
+          "latency_ms": 66.45089699999929,
+          "option_mass": 0.16512548316122383,
+          "first_token": "否",
+          "first_token_id": 238627,
+          "prompt_tokens": 118,
+          "tokens_cached": 118,
+          "raw_logprobs": {
+            "B": -1.8010495901107788
+          },
+          "top_tokens": [
+            {
+              "token": "否",
+              "logprob": -0.2931646406650543
+            },
+            {
+              "token": "B",
+              "logprob": -1.8010495901107788
+            },
+            {
+              "token": "\n",
+              "logprob": -3.1502583026885986
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -4.233952045440674
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -4.919264316558838
+            },
+            {
+              "token": "\n\n",
+              "logprob": -5.748062610626221
+            },
+            {
+              "token": "錯誤",
+              "logprob": -5.786679744720459
+            },
+            {
+              "token": "沒",
+              "logprob": -6.6115403175354
+            },
+            {
+              "token": "既然",
+              "logprob": -6.639524936676025
+            },
+            {
+              "token": "也不",
+              "logprob": -7.019378185272217
+            }
+          ],
+          "server_prompt_ms": 60.057,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 117,
+          "id": "s5",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        }
+      ]
+    },
+    "think+sys+prefill_答案：": {
+      "template": "<|turn>system\n<|think|>\n§SYSMARK§<turn|>\n<|turn>user\n§USRMARK§<turn|>\n<|turn>model\n",
+      "server_honored_kwargs": true,
+      "example_prompt": "<|turn>system\n<|think|>\n你是產線決策引擎。只回答一個字母。<turn|>\n<|turn>user\n【狀態】\nSMT-L3 回焊爐 R-02 第 4 區溫度 245°C 超上限 10°C 持續 3 分鐘，板子仍在爐內\n\n【問題】這則 alarm 的處置急迫度？\nA. 不急\nB. 盡快\nC. 停線\n\n只回答代表正確選項的字母。<turn|>\n<|turn>model\n答案：",
+      "rows": [
+        {
+          "probs": {
+            "C": 0.9981404335904562,
+            "A": 0.001633999247811654,
+            "B": 0.00022556716173213583
+          },
+          "missing": [],
+          "latency_ms": 127.67655199999695,
+          "option_mass": 0.9945807621080893,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 117,
+          "tokens_cached": 117,
+          "raw_logprobs": {
+            "C": -0.007295272778719664,
+            "A": -6.422158718109131,
+            "B": -8.402326583862305
+          },
+          "top_tokens": [
+            {
+              "token": "C",
+              "logprob": -0.007295272778719664
+            },
+            {
+              "token": "\n",
+              "logprob": -5.5174078941345215
+            },
+            {
+              "token": "A",
+              "logprob": -6.422158718109131
+            },
+            {
+              "token": " C",
+              "logprob": -6.836602687835693
+            },
+            {
+              "token": "B",
+              "logprob": -8.402326583862305
+            },
+            {
+              "token": "**",
+              "logprob": -9.22311782836914
+            },
+            {
+              "token": "[",
+              "logprob": -9.350025177001953
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -10.544990539550781
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -11.348642349243164
+            },
+            {
+              "token": ".",
+              "logprob": -11.972322463989258
+            }
+          ],
+          "server_prompt_ms": 95.025,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 115,
+          "server_cache_n": 2,
+          "id": "s1",
+          "gold": "C",
+          "rep": 0,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "C": 0.9981782524757274,
+            "A": 0.0016014198481320676,
+            "B": 0.0002203276761405291
+          },
+          "missing": [],
+          "latency_ms": 66.81038299999997,
+          "option_mass": 0.9948347198963371,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 117,
+          "tokens_cached": 117,
+          "raw_logprobs": {
+            "C": -0.007002075202763081,
+            "A": -6.442043304443359,
+            "B": -8.425573348999023
+          },
+          "top_tokens": [
+            {
+              "token": "C",
+              "logprob": -0.007002075202763081
+            },
+            {
+              "token": "\n",
+              "logprob": -5.5862579345703125
+            },
+            {
+              "token": "A",
+              "logprob": -6.442043304443359
+            },
+            {
+              "token": " C",
+              "logprob": -6.820305347442627
+            },
+            {
+              "token": "B",
+              "logprob": -8.425573348999023
+            },
+            {
+              "token": "**",
+              "logprob": -9.14089584350586
+            },
+            {
+              "token": "[",
+              "logprob": -9.414003372192383
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -10.663278579711914
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -11.34036636352539
+            },
+            {
+              "token": "}",
+              "logprob": -12.107110023498535
+            }
+          ],
+          "server_prompt_ms": 60.439,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 116,
+          "id": "s1",
+          "gold": "C",
+          "rep": 1,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "A": 0.9987317544773505,
+            "B": 0.0009265860045754546,
+            "C": 0.0002868731448076322,
+            "E": 4.0881505128459816e-05,
+            "D": 1.3904868138015529e-05
+          },
+          "missing": [],
+          "latency_ms": 118.33268799999885,
+          "option_mass": 0.9960055732295742,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 102,
+          "tokens_cached": 102,
+          "raw_logprobs": {
+            "A": -0.005271476227790117,
+            "B": -6.988006114959717,
+            "C": -8.160472869873047,
+            "E": -10.108835220336914,
+            "D": -11.187273979187012
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.005271476227790117
+            },
+            {
+              "token": "\n",
+              "logprob": -5.721986293792725
+            },
+            {
+              "token": "B",
+              "logprob": -6.988006114959717
+            },
+            {
+              "token": " A",
+              "logprob": -7.9810004234313965
+            },
+            {
+              "token": "C",
+              "logprob": -8.160472869873047
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -9.151509284973145
+            },
+            {
+              "token": "[",
+              "logprob": -9.407516479492188
+            },
+            {
+              "token": "**",
+              "logprob": -9.511033058166504
+            },
+            {
+              "token": "E",
+              "logprob": -10.108835220336914
+            },
+            {
+              "token": ".",
+              "logprob": -10.546265602111816
+            }
+          ],
+          "server_prompt_ms": 85.197,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 75,
+          "server_cache_n": 27,
+          "id": "s2",
+          "gold": "A",
+          "rep": 0,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "A": 0.9986746797093545,
+            "B": 0.0009564859350709652,
+            "C": 0.0003077749332514326,
+            "E": 4.471554460193488e-05,
+            "D": 1.6343877721125188e-05
+          },
+          "missing": [],
+          "latency_ms": 66.51316499999993,
+          "option_mass": 0.9952355770675213,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 102,
+          "tokens_cached": 102,
+          "raw_logprobs": {
+            "A": -0.006102008279412985,
+            "B": -6.957020282745361,
+            "C": -8.090917587280273,
+            "E": -10.019965171813965,
+            "D": -11.026432991027832
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.006102008279412985
+            },
+            {
+              "token": "\n",
+              "logprob": -5.523935794830322
+            },
+            {
+              "token": "B",
+              "logprob": -6.957020282745361
+            },
+            {
+              "token": " A",
+              "logprob": -8.055543899536133
+            },
+            {
+              "token": "C",
+              "logprob": -8.090917587280273
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -8.936214447021484
+            },
+            {
+              "token": "[",
+              "logprob": -9.229490280151367
+            },
+            {
+              "token": "**",
+              "logprob": -9.306756019592285
+            },
+            {
+              "token": "E",
+              "logprob": -10.019965171813965
+            },
+            {
+              "token": ".",
+              "logprob": -10.48839282989502
+            }
+          ],
+          "server_prompt_ms": 60.166,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 101,
+          "id": "s2",
+          "gold": "A",
+          "rep": 1,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "B": 0.9778270737885393,
+            "A": 0.02217292621146068
+          },
+          "missing": [],
+          "latency_ms": 117.68325899999965,
+          "option_mass": 0.9920240589499644,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 119,
+          "tokens_cached": 119,
+          "raw_logprobs": {
+            "B": -0.03043035976588726,
+            "A": -3.8168911933898926
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.03043035976588726
+            },
+            {
+              "token": "A",
+              "logprob": -3.8168911933898926
+            },
+            {
+              "token": "\n",
+              "logprob": -5.209080219268799
+            },
+            {
+              "token": " B",
+              "logprob": -6.338280200958252
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -8.457730293273926
+            },
+            {
+              "token": "**",
+              "logprob": -8.912726402282715
+            },
+            {
+              "token": "[",
+              "logprob": -9.219686508178711
+            },
+            {
+              "token": "否",
+              "logprob": -10.64231014251709
+            },
+            {
+              "token": ".",
+              "logprob": -10.738263130187988
+            },
+            {
+              "token": "{",
+              "logprob": -10.807833671569824
+            }
+          ],
+          "server_prompt_ms": 89.062,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 92,
+          "server_cache_n": 27,
+          "id": "s3",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 0.9776186522501749,
+            "A": 0.02238134774982509
+          },
+          "missing": [],
+          "latency_ms": 67.53686699999761,
+          "option_mass": 0.9919104042172786,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 119,
+          "tokens_cached": 119,
+          "raw_logprobs": {
+            "B": -0.030758105218410492,
+            "A": -3.807649850845337
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.030758105218410492
+            },
+            {
+              "token": "A",
+              "logprob": -3.807649850845337
+            },
+            {
+              "token": "\n",
+              "logprob": -5.121330261230469
+            },
+            {
+              "token": " B",
+              "logprob": -6.597116470336914
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -8.266298294067383
+            },
+            {
+              "token": "**",
+              "logprob": -9.02088451385498
+            },
+            {
+              "token": "[",
+              "logprob": -9.208318710327148
+            },
+            {
+              "token": "否",
+              "logprob": -10.568029403686523
+            },
+            {
+              "token": ".",
+              "logprob": -10.892389297485352
+            },
+            {
+              "token": "No",
+              "logprob": -10.895180702209473
+            }
+          ],
+          "server_prompt_ms": 60.933,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 118,
+          "id": "s3",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "A": 0.8793222340449228,
+            "C": 0.11706297396036645,
+            "B": 0.001910445594077169,
+            "D": 0.001704346400633547
+          },
+          "missing": [],
+          "latency_ms": 119.1013820000002,
+          "option_mass": 0.9862399663516177,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 112,
+          "tokens_cached": 112,
+          "raw_logprobs": {
+            "A": -0.142459437251091,
+            "C": -2.1588988304138184,
+            "B": -6.2742743492126465,
+            "D": -6.388429164886475
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.142459437251091
+            },
+            {
+              "token": "C",
+              "logprob": -2.1588988304138184
+            },
+            {
+              "token": "\n",
+              "logprob": -4.393544673919678
+            },
+            {
+              "token": "B",
+              "logprob": -6.2742743492126465
+            },
+            {
+              "token": "D",
+              "logprob": -6.388429164886475
+            },
+            {
+              "token": " A",
+              "logprob": -7.5632243156433105
+            },
+            {
+              "token": "**",
+              "logprob": -8.220488548278809
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -8.8388090133667
+            },
+            {
+              "token": "[",
+              "logprob": -9.172863960266113
+            },
+            {
+              "token": " C",
+              "logprob": -9.554155349731445
+            }
+          ],
+          "server_prompt_ms": 89.218,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 85,
+          "server_cache_n": 27,
+          "id": "s4",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "A": 0.8712172137471625,
+            "C": 0.12546456034574952,
+            "D": 0.0019771403658321194,
+            "B": 0.001341085541255654
+          },
+          "missing": [],
+          "latency_ms": 67.83955099999872,
+          "option_mass": 0.9854333802550674,
+          "first_token": "\n",
+          "first_token_id": 107,
+          "prompt_tokens": 112,
+          "tokens_cached": 112,
+          "raw_logprobs": {
+            "A": -0.15253770351409912,
+            "C": -2.0904057025909424,
+            "D": -6.240777492523193,
+            "B": -6.6289496421813965
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.15253770351409912
+            },
+            {
+              "token": "C",
+              "logprob": -2.0904057025909424
+            },
+            {
+              "token": "\n",
+              "logprob": -4.32600736618042
+            },
+            {
+              "token": "D",
+              "logprob": -6.240777492523193
+            },
+            {
+              "token": "B",
+              "logprob": -6.6289496421813965
+            },
+            {
+              "token": " A",
+              "logprob": -7.5129008293151855
+            },
+            {
+              "token": "**",
+              "logprob": -8.294429779052734
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -8.98287582397461
+            },
+            {
+              "token": "[",
+              "logprob": -9.370299339294434
+            },
+            {
+              "token": " C",
+              "logprob": -9.48473072052002
+            }
+          ],
+          "server_prompt_ms": 60.959,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 111,
+          "id": "s4",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "B": 0.9945405219776596,
+            "A": 0.005459478022340271
+          },
+          "missing": [],
+          "latency_ms": 121.27973999999853,
+          "option_mass": 0.993405330727473,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 115,
+          "tokens_cached": 115,
+          "raw_logprobs": {
+            "B": -0.012090945616364479,
+            "A": -5.2170186042785645
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.012090945616364479
+            },
+            {
+              "token": "A",
+              "logprob": -5.2170186042785645
+            },
+            {
+              "token": "\n",
+              "logprob": -5.3670220375061035
+            },
+            {
+              "token": " B",
+              "logprob": -6.5950398445129395
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -8.494564056396484
+            },
+            {
+              "token": "[",
+              "logprob": -9.196595191955566
+            },
+            {
+              "token": "**",
+              "logprob": -9.472890853881836
+            },
+            {
+              "token": "{",
+              "logprob": -11.166618347167969
+            },
+            {
+              "token": ".",
+              "logprob": -11.443901062011719
+            },
+            {
+              "token": "<",
+              "logprob": -11.571097373962402
+            }
+          ],
+          "server_prompt_ms": 88.888,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 88,
+          "server_cache_n": 27,
+          "id": "s5",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 0.9948939162905313,
+            "A": 0.005106083709468724
+          },
+          "missing": [],
+          "latency_ms": 66.68761899999964,
+          "option_mass": 0.993159704797686,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 115,
+          "tokens_cached": 115,
+          "raw_logprobs": {
+            "B": -0.011982961557805538,
+            "A": -5.284186363220215
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.011982961557805538
+            },
+            {
+              "token": "A",
+              "logprob": -5.284186363220215
+            },
+            {
+              "token": "\n",
+              "logprob": -5.288723945617676
+            },
+            {
+              "token": " B",
+              "logprob": -6.70937442779541
+            },
+            {
+              "token": "<|channel>",
+              "logprob": -8.46138858795166
+            },
+            {
+              "token": "[",
+              "logprob": -9.178826332092285
+            },
+            {
+              "token": "**",
+              "logprob": -9.392241477966309
+            },
+            {
+              "token": ".",
+              "logprob": -11.240967750549316
+            },
+            {
+              "token": "{",
+              "logprob": -11.271346092224121
+            },
+            {
+              "token": "否",
+              "logprob": -11.540047645568848
+            }
+          ],
+          "server_prompt_ms": 60.56,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 114,
+          "id": "s5",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        }
+      ]
+    },
+    "T1-V1 json_prefill": {
+      "template": "<|turn>system\n§SYSMARK§<turn|>\n<|turn>user\n§USRMARK§<turn|>\n<|turn>model\n<|channel>thought\n<channel|>",
+      "server_honored_kwargs": true,
+      "example_prompt": "<|turn>system\n你是產線決策引擎。只回答一個字母。<turn|>\n<|turn>user\n【狀態】\nSMT-L3 回焊爐 R-02 第 4 區溫度 245°C 超上限 10°C 持續 3 分鐘，板子仍在爐內\n\n【問題】這則 alarm 的處置急迫度？\nA. 不急\nB. 盡快\nC. 停線\n\n只回答代表正確選項的字母。<turn|>\n<|turn>model\n<|channel>thought\n<channel|>{\"answer\": \"",
+      "rows": [
+        {
+          "probs": {
+            "C": 0.9974189370427455,
+            "B": 0.001949436275468889,
+            "A": 0.0006316266817856638
+          },
+          "missing": [],
+          "latency_ms": 105.1453819999999,
+          "option_mass": 0.9998986518489009,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 121,
+          "tokens_cached": 121,
+          "raw_logprobs": {
+            "C": -0.0026857529301196337,
+            "B": -6.240316390991211,
+            "A": -7.367313385009766
+          },
+          "top_tokens": [
+            {
+              "token": "C",
+              "logprob": -0.0026857529301196337
+            },
+            {
+              "token": "B",
+              "logprob": -6.240316390991211
+            },
+            {
+              "token": "A",
+              "logprob": -7.367313385009766
+            },
+            {
+              "token": "c",
+              "logprob": -10.778806686401367
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -11.075822830200195
+            },
+            {
+              "token": " C",
+              "logprob": -11.710205078125
+            },
+            {
+              "token": "[\"",
+              "logprob": -12.780345916748047
+            },
+            {
+              "token": "\"}",
+              "logprob": -12.880574226379395
+            },
+            {
+              "token": "丙",
+              "logprob": -13.130509376525879
+            },
+            {
+              "token": "\"",
+              "logprob": -13.213939666748047
+            }
+          ],
+          "server_prompt_ms": 61.883,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 4,
+          "server_cache_n": 117,
+          "id": "s1",
+          "gold": "C",
+          "rep": 0,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "C": 0.997279072779412,
+            "B": 0.00206283351556386,
+            "A": 0.0006580937050242764
+          },
+          "missing": [],
+          "latency_ms": 67.33119899999807,
+          "option_mass": 0.9998998052121091,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 121,
+          "tokens_cached": 121,
+          "raw_logprobs": {
+            "C": -0.002824835479259491,
+            "B": -6.183774948120117,
+            "A": -7.326263427734375
+          },
+          "top_tokens": [
+            {
+              "token": "C",
+              "logprob": -0.002824835479259491
+            },
+            {
+              "token": "B",
+              "logprob": -6.183774948120117
+            },
+            {
+              "token": "A",
+              "logprob": -7.326263427734375
+            },
+            {
+              "token": "c",
+              "logprob": -10.76399040222168
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -11.03134536743164
+            },
+            {
+              "token": " C",
+              "logprob": -11.653373718261719
+            },
+            {
+              "token": "[\"",
+              "logprob": -12.813429832458496
+            },
+            {
+              "token": "\"}",
+              "logprob": -12.941845893859863
+            },
+            {
+              "token": "T",
+              "logprob": -13.142779350280762
+            },
+            {
+              "token": "丙",
+              "logprob": -13.19725227355957
+            }
+          ],
+          "server_prompt_ms": 60.751,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 120,
+          "id": "s1",
+          "gold": "C",
+          "rep": 1,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "A": 0.9441941765632101,
+            "B": 0.03392713994181153,
+            "C": 0.021775745954475272,
+            "E": 6.956795549010825e-05,
+            "D": 3.336958501275537e-05
+          },
+          "missing": [],
+          "latency_ms": 105.43650800000037,
+          "option_mass": 0.9998613315590216,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 106,
+          "tokens_cached": 106,
+          "raw_logprobs": {
+            "A": -0.05756211653351784,
+            "B": -3.383678674697876,
+            "C": -3.827097177505493,
+            "E": -9.573345184326172,
+            "D": -10.308004379272461
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.05756211653351784
+            },
+            {
+              "token": "B",
+              "logprob": -3.383678674697876
+            },
+            {
+              "token": "C",
+              "logprob": -3.827097177505493
+            },
+            {
+              "token": "E",
+              "logprob": -9.573345184326172
+            },
+            {
+              "token": "D",
+              "logprob": -10.308004379272461
+            },
+            {
+              "token": "\"",
+              "logprob": -11.252328872680664
+            },
+            {
+              "token": "機",
+              "logprob": -11.648897171020508
+            },
+            {
+              "token": "[\"",
+              "logprob": -11.762402534484863
+            },
+            {
+              "token": "T",
+              "logprob": -12.109210968017578
+            },
+            {
+              "token": " A",
+              "logprob": -12.39360523223877
+            }
+          ],
+          "server_prompt_ms": 62.179,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 4,
+          "server_cache_n": 102,
+          "id": "s2",
+          "gold": "A",
+          "rep": 0,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "A": 0.9415433326154802,
+            "B": 0.03660472038863917,
+            "C": 0.02175000698856422,
+            "E": 6.772165527579184e-05,
+            "D": 3.421835204074709e-05
+          },
+          "missing": [],
+          "latency_ms": 68.47734100000125,
+          "option_mass": 0.9998590922190044,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 106,
+          "tokens_cached": 106,
+          "raw_logprobs": {
+            "A": -0.06037582457065582,
+            "B": -3.3077189922332764,
+            "C": -3.828282117843628,
+            "E": -9.600245475769043,
+            "D": -10.282889366149902
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.06037582457065582
+            },
+            {
+              "token": "B",
+              "logprob": -3.3077189922332764
+            },
+            {
+              "token": "C",
+              "logprob": -3.828282117843628
+            },
+            {
+              "token": "E",
+              "logprob": -9.600245475769043
+            },
+            {
+              "token": "D",
+              "logprob": -10.282889366149902
+            },
+            {
+              "token": "\"",
+              "logprob": -11.180088996887207
+            },
+            {
+              "token": "機",
+              "logprob": -11.453546524047852
+            },
+            {
+              "token": "[\"",
+              "logprob": -11.706454277038574
+            },
+            {
+              "token": "T",
+              "logprob": -12.210058212280273
+            },
+            {
+              "token": " A",
+              "logprob": -12.389254570007324
+            }
+          ],
+          "server_prompt_ms": 61.009,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 105,
+          "id": "s2",
+          "gold": "A",
+          "rep": 1,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "B": 0.9998991949022961,
+            "A": 0.00010080509770392056
+          },
+          "missing": [],
+          "latency_ms": 103.13417399999736,
+          "option_mass": 0.9998317923894333,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 123,
+          "tokens_cached": 123,
+          "raw_logprobs": {
+            "B": -0.0002690319379325956,
+            "A": -9.202489852905273
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.0002690319379325956
+            },
+            {
+              "token": "A",
+              "logprob": -9.202489852905273
+            },
+            {
+              "token": "No",
+              "logprob": -11.228849411010742
+            },
+            {
+              "token": "none",
+              "logprob": -11.425666809082031
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -11.47943115234375
+            },
+            {
+              "token": "{\"",
+              "logprob": -11.490142822265625
+            },
+            {
+              "token": "否",
+              "logprob": -11.792850494384766
+            },
+            {
+              "token": "[\"",
+              "logprob": -11.937333106994629
+            },
+            {
+              "token": "錯誤",
+              "logprob": -12.090639114379883
+            },
+            {
+              "token": "no",
+              "logprob": -12.34510326385498
+            }
+          ],
+          "server_prompt_ms": 61.997,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 4,
+          "server_cache_n": 119,
+          "id": "s3",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 0.9999127366864249,
+            "A": 8.726331357514611e-05
+          },
+          "missing": [],
+          "latency_ms": 67.46552199999911,
+          "option_mass": 0.9998254048759321,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 123,
+          "tokens_cached": 123,
+          "raw_logprobs": {
+            "B": -0.00026187748881056905,
+            "A": -9.346755027770996
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.00026187748881056905
+            },
+            {
+              "token": "A",
+              "logprob": -9.346755027770996
+            },
+            {
+              "token": "No",
+              "logprob": -11.186697959899902
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -11.392460823059082
+            },
+            {
+              "token": "none",
+              "logprob": -11.461523056030273
+            },
+            {
+              "token": "{\"",
+              "logprob": -11.534391403198242
+            },
+            {
+              "token": "否",
+              "logprob": -11.71550178527832
+            },
+            {
+              "token": "[\"",
+              "logprob": -11.850378036499023
+            },
+            {
+              "token": "錯誤",
+              "logprob": -12.07051944732666
+            },
+            {
+              "token": "不是",
+              "logprob": -12.285079956054688
+            }
+          ],
+          "server_prompt_ms": 60.642,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 122,
+          "id": "s3",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "A": 0.8358729251963088,
+            "D": 0.08483864552100492,
+            "C": 0.0690513873909846,
+            "B": 0.010237041891701496
+          },
+          "missing": [],
+          "latency_ms": 107.03054100000031,
+          "option_mass": 0.9998734615079788,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 116,
+          "tokens_cached": 116,
+          "raw_logprobs": {
+            "A": -0.17940522730350494,
+            "D": -2.467130661010742,
+            "C": -2.6730308532714844,
+            "B": -4.581869125366211
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.17940522730350494
+            },
+            {
+              "token": "D",
+              "logprob": -2.467130661010742
+            },
+            {
+              "token": "C",
+              "logprob": -2.6730308532714844
+            },
+            {
+              "token": "B",
+              "logprob": -4.581869125366211
+            },
+            {
+              "token": "E",
+              "logprob": -10.879043579101562
+            },
+            {
+              "token": "\"",
+              "logprob": -11.260892868041992
+            },
+            {
+              "token": "T",
+              "logprob": -11.476078033447266
+            },
+            {
+              "token": "d",
+              "logprob": -11.850370407104492
+            },
+            {
+              "token": "a",
+              "logprob": -12.057465553283691
+            },
+            {
+              "token": " \"",
+              "logprob": -12.063164710998535
+            }
+          ],
+          "server_prompt_ms": 61.874,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 4,
+          "server_cache_n": 112,
+          "id": "s4",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "A": 0.8364683132341831,
+            "D": 0.08925271679015434,
+            "C": 0.06365734510135958,
+            "B": 0.010621624874302831
+          },
+          "missing": [],
+          "latency_ms": 66.84848700000146,
+          "option_mass": 0.9998784634063613,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 116,
+          "tokens_cached": 116,
+          "raw_logprobs": {
+            "A": -0.178688183426857,
+            "D": -2.416404962539673,
+            "C": -2.754362106323242,
+            "B": -4.544984817504883
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.178688183426857
+            },
+            {
+              "token": "D",
+              "logprob": -2.416404962539673
+            },
+            {
+              "token": "C",
+              "logprob": -2.754362106323242
+            },
+            {
+              "token": "B",
+              "logprob": -4.544984817504883
+            },
+            {
+              "token": "E",
+              "logprob": -10.845962524414062
+            },
+            {
+              "token": "\"",
+              "logprob": -11.382532119750977
+            },
+            {
+              "token": "T",
+              "logprob": -11.431337356567383
+            },
+            {
+              "token": "d",
+              "logprob": -11.817866325378418
+            },
+            {
+              "token": " \"",
+              "logprob": -12.080129623413086
+            },
+            {
+              "token": "c",
+              "logprob": -12.200254440307617
+            }
+          ],
+          "server_prompt_ms": 60.143,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 115,
+          "id": "s4",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "B": 0.9995955623774063,
+            "A": 0.00040443762259368164
+          },
+          "missing": [],
+          "latency_ms": 103.66765899999919,
+          "option_mass": 0.9996891157505358,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 119,
+          "tokens_cached": 119,
+          "raw_logprobs": {
+            "B": -0.0007154520135372877,
+            "A": -7.813323974609375
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.0007154520135372877
+            },
+            {
+              "token": "A",
+              "logprob": -7.813323974609375
+            },
+            {
+              "token": "No",
+              "logprob": -10.403511047363281
+            },
+            {
+              "token": "否",
+              "logprob": -10.840093612670898
+            },
+            {
+              "token": "none",
+              "logprob": -11.013086318969727
+            },
+            {
+              "token": "{\"",
+              "logprob": -11.047069549560547
+            },
+            {
+              "token": "C",
+              "logprob": -11.270610809326172
+            },
+            {
+              "token": "[\"",
+              "logprob": -11.291455268859863
+            },
+            {
+              "token": "no",
+              "logprob": -11.579486846923828
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -11.586263656616211
+            }
+          ],
+          "server_prompt_ms": 62.32,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 4,
+          "server_cache_n": 115,
+          "id": "s5",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 0.9995704384128188,
+            "A": 0.0004295615871811482
+          },
+          "missing": [],
+          "latency_ms": 67.00195100000172,
+          "option_mass": 0.9996846660909929,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 119,
+          "tokens_cached": 119,
+          "raw_logprobs": {
+            "B": -0.0007450375123880804,
+            "A": -7.753060817718506
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.0007450375123880804
+            },
+            {
+              "token": "A",
+              "logprob": -7.753060817718506
+            },
+            {
+              "token": "No",
+              "logprob": -10.407544136047363
+            },
+            {
+              "token": "否",
+              "logprob": -10.762290000915527
+            },
+            {
+              "token": "none",
+              "logprob": -10.981865882873535
+            },
+            {
+              "token": "{\"",
+              "logprob": -11.00683307647705
+            },
+            {
+              "token": "[\"",
+              "logprob": -11.274958610534668
+            },
+            {
+              "token": "C",
+              "logprob": -11.297445297241211
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -11.548465728759766
+            },
+            {
+              "token": "no",
+              "logprob": -11.619537353515625
+            }
+          ],
+          "server_prompt_ms": 60.487,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 118,
+          "id": "s5",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        }
+      ]
+    },
+    "T1-V2 json_prefill+json_instruction": {
+      "template": "<|turn>system\n§SYSMARK§<turn|>\n<|turn>user\n§USRMARK§<turn|>\n<|turn>model\n<|channel>thought\n<channel|>",
+      "server_honored_kwargs": true,
+      "example_prompt": "<|turn>system\n你是產線決策引擎。只回答一個字母。<turn|>\n<|turn>user\n【狀態】\nSMT-L3 回焊爐 R-02 第 4 區溫度 245°C 超上限 10°C 持續 3 分鐘，板子仍在爐內\n\n【問題】這則 alarm 的處置急迫度？\nA. 不急\nB. 盡快\nC. 停線\n\n以 {\"answer\": \"<字母>\"} 回答，只輸出這個 JSON。<turn|>\n<|turn>model\n<|channel>thought\n<channel|>{\"answer\": \"",
+      "rows": [
+        {
+          "probs": {
+            "C": 0.9999022957932248,
+            "B": 7.80032663112267e-05,
+            "A": 1.9700940464122734e-05
+          },
+          "missing": [],
+          "latency_ms": 117.47631400000103,
+          "option_mass": 0.9999986411574533,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 129,
+          "tokens_cached": 129,
+          "raw_logprobs": {
+            "C": -9.906782361213118e-05,
+            "B": -9.458761215209961,
+            "A": -10.834845542907715
+          },
+          "top_tokens": [
+            {
+              "token": "C",
+              "logprob": -9.906782361213118e-05
+            },
+            {
+              "token": "B",
+              "logprob": -9.458761215209961
+            },
+            {
+              "token": "A",
+              "logprob": -10.834845542907715
+            },
+            {
+              "token": "c",
+              "logprob": -14.499601364135742
+            },
+            {
+              "token": " C",
+              "logprob": -15.158182144165039
+            },
+            {
+              "token": "T",
+              "logprob": -15.323037147521973
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -15.515501022338867
+            },
+            {
+              "token": "I",
+              "logprob": -16.204082489013672
+            },
+            {
+              "token": "D",
+              "logprob": -16.246620178222656
+            },
+            {
+              "token": "S",
+              "logprob": -16.68523597717285
+            }
+          ],
+          "server_prompt_ms": 73.95,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 29,
+          "server_cache_n": 100,
+          "id": "s1",
+          "gold": "C",
+          "rep": 0,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "C": 0.9998982254281814,
+            "B": 8.063116715399504e-05,
+            "A": 2.114340466467965e-05
+          },
+          "missing": [],
+          "latency_ms": 67.10965799999968,
+          "option_mass": 0.9999985391815169,
+          "first_token": "C",
+          "first_token_id": 236780,
+          "prompt_tokens": 129,
+          "tokens_cached": 129,
+          "raw_logprobs": {
+            "C": -0.00010324057075195014,
+            "B": -9.425626754760742,
+            "A": -10.76418399810791
+          },
+          "top_tokens": [
+            {
+              "token": "C",
+              "logprob": -0.00010324057075195014
+            },
+            {
+              "token": "B",
+              "logprob": -9.425626754760742
+            },
+            {
+              "token": "A",
+              "logprob": -10.76418399810791
+            },
+            {
+              "token": "c",
+              "logprob": -14.499323844909668
+            },
+            {
+              "token": " C",
+              "logprob": -14.972159385681152
+            },
+            {
+              "token": "Ｃ",
+              "logprob": -15.286285400390625
+            },
+            {
+              "token": "T",
+              "logprob": -15.294001579284668
+            },
+            {
+              "token": "I",
+              "logprob": -16.09592628479004
+            },
+            {
+              "token": "D",
+              "logprob": -16.215282440185547
+            },
+            {
+              "token": "С",
+              "logprob": -16.663497924804688
+            }
+          ],
+          "server_prompt_ms": 60.121,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 128,
+          "id": "s1",
+          "gold": "C",
+          "rep": 1,
+          "chosen": "C"
+        },
+        {
+          "probs": {
+            "A": 0.905022657350055,
+            "B": 0.08316759840319331,
+            "C": 0.011733159241039987,
+            "E": 6.493949689745318e-05,
+            "D": 1.1645508814227506e-05
+          },
+          "missing": [],
+          "latency_ms": 120.40435700000174,
+          "option_mass": 0.9999933050119221,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 114,
+          "tokens_cached": 114,
+          "raw_logprobs": {
+            "A": -0.09980199486017227,
+            "B": -2.4869041442871094,
+            "C": -4.445343017578125,
+            "E": -9.642061233520508,
+            "D": -11.360596656799316
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.09980199486017227
+            },
+            {
+              "token": "B",
+              "logprob": -2.4869041442871094
+            },
+            {
+              "token": "C",
+              "logprob": -4.445343017578125
+            },
+            {
+              "token": "E",
+              "logprob": -9.642061233520508
+            },
+            {
+              "token": "D",
+              "logprob": -11.360596656799316
+            },
+            {
+              "token": "T",
+              "logprob": -13.702982902526855
+            },
+            {
+              "token": "I",
+              "logprob": -13.968902587890625
+            },
+            {
+              "token": "S",
+              "logprob": -14.306714057922363
+            },
+            {
+              "token": "F",
+              "logprob": -14.450830459594727
+            },
+            {
+              "token": "А",
+              "logprob": -14.467276573181152
+            }
+          ],
+          "server_prompt_ms": 73.542,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 29,
+          "server_cache_n": 85,
+          "id": "s2",
+          "gold": "A",
+          "rep": 0,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "A": 0.9094727793432095,
+            "B": 0.07952084408781025,
+            "C": 0.010920136680532535,
+            "E": 7.421118547925562e-05,
+            "D": 1.20287029682864e-05
+          },
+          "missing": [],
+          "latency_ms": 67.13986099999758,
+          "option_mass": 0.9999925754726301,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 114,
+          "tokens_cached": 114,
+          "raw_logprobs": {
+            "A": -0.09489763528108597,
+            "B": -2.5317435264587402,
+            "C": -4.517154216766357,
+            "E": -9.5086030960083,
+            "D": -11.328222274780273
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.09489763528108597
+            },
+            {
+              "token": "B",
+              "logprob": -2.5317435264587402
+            },
+            {
+              "token": "C",
+              "logprob": -4.517154216766357
+            },
+            {
+              "token": "E",
+              "logprob": -9.5086030960083
+            },
+            {
+              "token": "D",
+              "logprob": -11.328222274780273
+            },
+            {
+              "token": "T",
+              "logprob": -13.580491065979004
+            },
+            {
+              "token": "I",
+              "logprob": -13.764946937561035
+            },
+            {
+              "token": "S",
+              "logprob": -14.24700927734375
+            },
+            {
+              "token": "А",
+              "logprob": -14.303441047668457
+            },
+            {
+              "token": "F",
+              "logprob": -14.398308753967285
+            }
+          ],
+          "server_prompt_ms": 60.199,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 113,
+          "id": "s2",
+          "gold": "A",
+          "rep": 1,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "B": 0.9999977887320394,
+            "A": 2.2112679605634587e-06
+          },
+          "missing": [],
+          "latency_ms": 116.84809699999832,
+          "option_mass": 0.9999994694530211,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 131,
+          "tokens_cached": 131,
+          "raw_logprobs": {
+            "B": -2.7418175250204513e-06,
+            "A": -13.021944999694824
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -2.7418175250204513e-06
+            },
+            {
+              "token": "A",
+              "logprob": -13.021944999694824
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -15.779284477233887
+            },
+            {
+              "token": " B",
+              "logprob": -15.826407432556152
+            },
+            {
+              "token": "C",
+              "logprob": -16.3239688873291
+            },
+            {
+              "token": "Β",
+              "logprob": -16.37848472595215
+            },
+            {
+              "token": "F",
+              "logprob": -16.6899471282959
+            },
+            {
+              "token": "0",
+              "logprob": -16.942514419555664
+            },
+            {
+              "token": "P",
+              "logprob": -16.955419540405273
+            },
+            {
+              "token": "N",
+              "logprob": -17.148601531982422
+            }
+          ],
+          "server_prompt_ms": 73.469,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 29,
+          "server_cache_n": 102,
+          "id": "s3",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 0.9999980433599076,
+            "A": 1.956640092467268e-06
+          },
+          "missing": [],
+          "latency_ms": 66.7943450000017,
+          "option_mass": 0.9999994532438924,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 131,
+          "tokens_cached": 131,
+          "raw_logprobs": {
+            "B": -2.5033982637978625e-06,
+            "A": -13.144282341003418
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -2.5033982637978625e-06
+            },
+            {
+              "token": "A",
+              "logprob": -13.144282341003418
+            },
+            {
+              "token": "Ｂ",
+              "logprob": -15.74064826965332
+            },
+            {
+              "token": " B",
+              "logprob": -15.844361305236816
+            },
+            {
+              "token": "Β",
+              "logprob": -16.37206268310547
+            },
+            {
+              "token": "C",
+              "logprob": -16.379077911376953
+            },
+            {
+              "token": "F",
+              "logprob": -16.56369400024414
+            },
+            {
+              "token": "P",
+              "logprob": -16.91238784790039
+            },
+            {
+              "token": "0",
+              "logprob": -16.969697952270508
+            },
+            {
+              "token": "N",
+              "logprob": -17.07179069519043
+            }
+          ],
+          "server_prompt_ms": 60.235,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 130,
+          "id": "s3",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "A": 0.657152598703212,
+            "D": 0.1912065709771148,
+            "C": 0.13755999680666947,
+            "B": 0.014080833513003665
+          },
+          "missing": [],
+          "latency_ms": 118.92592799999946,
+          "option_mass": 0.9999860198213182,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 124,
+          "tokens_cached": 124,
+          "raw_logprobs": {
+            "A": -0.41985300183296204,
+            "D": -1.6544148921966553,
+            "C": -1.9837090969085693,
+            "B": -4.2629547119140625
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.41985300183296204
+            },
+            {
+              "token": "D",
+              "logprob": -1.6544148921966553
+            },
+            {
+              "token": "C",
+              "logprob": -1.9837090969085693
+            },
+            {
+              "token": "B",
+              "logprob": -4.2629547119140625
+            },
+            {
+              "token": "E",
+              "logprob": -12.163765907287598
+            },
+            {
+              "token": "T",
+              "logprob": -12.728737831115723
+            },
+            {
+              "token": "S",
+              "logprob": -13.554969787597656
+            },
+            {
+              "token": "I",
+              "logprob": -13.9371337890625
+            },
+            {
+              "token": "F",
+              "logprob": -14.06162166595459
+            },
+            {
+              "token": "P",
+              "logprob": -14.870527267456055
+            }
+          ],
+          "server_prompt_ms": 73.514,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 29,
+          "server_cache_n": 95,
+          "id": "s4",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "A": 0.5920215206019607,
+            "D": 0.23536818564639148,
+            "C": 0.15722083859331237,
+            "B": 0.01538945515833548
+          },
+          "missing": [],
+          "latency_ms": 66.55507800000038,
+          "option_mass": 0.9999837792814289,
+          "first_token": "A",
+          "first_token_id": 236776,
+          "prompt_tokens": 124,
+          "tokens_cached": 124,
+          "raw_logprobs": {
+            "A": -0.5242285132408142,
+            "D": -1.4466204643249512,
+            "C": -1.8501200675964355,
+            "B": -4.174088954925537
+          },
+          "top_tokens": [
+            {
+              "token": "A",
+              "logprob": -0.5242285132408142
+            },
+            {
+              "token": "D",
+              "logprob": -1.4466204643249512
+            },
+            {
+              "token": "C",
+              "logprob": -1.8501200675964355
+            },
+            {
+              "token": "B",
+              "logprob": -4.174088954925537
+            },
+            {
+              "token": "E",
+              "logprob": -11.966843605041504
+            },
+            {
+              "token": "T",
+              "logprob": -12.644006729125977
+            },
+            {
+              "token": "S",
+              "logprob": -13.373570442199707
+            },
+            {
+              "token": "I",
+              "logprob": -13.799827575683594
+            },
+            {
+              "token": "F",
+              "logprob": -14.016194343566895
+            },
+            {
+              "token": "P",
+              "logprob": -14.76353645324707
+            }
+          ],
+          "server_prompt_ms": 60.081,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 123,
+          "id": "s4",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "A"
+        },
+        {
+          "probs": {
+            "B": 0.9998483174951878,
+            "A": 0.00015168250481220003
+          },
+          "missing": [],
+          "latency_ms": 119.24692599999887,
+          "option_mass": 0.9999807334640302,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 127,
+          "tokens_cached": 127,
+          "raw_logprobs": {
+            "B": -0.0001709607313387096,
+            "A": -8.793740272521973
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.0001709607313387096
+            },
+            {
+              "token": "A",
+              "logprob": -8.793740272521973
+            },
+            {
+              "token": "N",
+              "logprob": -12.439209938049316
+            },
+            {
+              "token": "C",
+              "logprob": -12.629918098449707
+            },
+            {
+              "token": "F",
+              "logprob": -12.914932250976562
+            },
+            {
+              "token": " B",
+              "logprob": -13.406021118164062
+            },
+            {
+              "token": "No",
+              "logprob": -13.776369094848633
+            },
+            {
+              "token": "T",
+              "logprob": -14.33397102355957
+            },
+            {
+              "token": "D",
+              "logprob": -14.358474731445312
+            },
+            {
+              "token": "I",
+              "logprob": -14.431819915771484
+            }
+          ],
+          "server_prompt_ms": 73.347,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 29,
+          "server_cache_n": 98,
+          "id": "s5",
+          "gold": "B",
+          "rep": 0,
+          "chosen": "B"
+        },
+        {
+          "probs": {
+            "B": 0.9998690638590874,
+            "A": 0.00013093614091254726
+          },
+          "missing": [],
+          "latency_ms": 66.58838699999947,
+          "option_mass": 0.9999801337948055,
+          "first_token": "B",
+          "first_token_id": 236799,
+          "prompt_tokens": 127,
+          "tokens_cached": 127,
+          "raw_logprobs": {
+            "B": -0.00015081111632753164,
+            "A": -8.940820693969727
+          },
+          "top_tokens": [
+            {
+              "token": "B",
+              "logprob": -0.00015081111632753164
+            },
+            {
+              "token": "A",
+              "logprob": -8.940820693969727
+            },
+            {
+              "token": "N",
+              "logprob": -12.397642135620117
+            },
+            {
+              "token": "C",
+              "logprob": -12.444334030151367
+            },
+            {
+              "token": "F",
+              "logprob": -12.864985466003418
+            },
+            {
+              "token": " B",
+              "logprob": -13.70072078704834
+            },
+            {
+              "token": "No",
+              "logprob": -13.891806602478027
+            },
+            {
+              "token": "T",
+              "logprob": -14.293488502502441
+            },
+            {
+              "token": "I",
+              "logprob": -14.302298545837402
+            },
+            {
+              "token": "D",
+              "logprob": -14.304243087768555
+            }
+          ],
+          "server_prompt_ms": 59.998,
+          "server_predicted_ms": 0.001,
+          "server_prompt_n": 1,
+          "server_cache_n": 126,
+          "id": "s5",
+          "gold": "B",
+          "rep": 1,
+          "chosen": "B"
+        }
+      ]
+    }
+  },
+  "option_mass_check": {
+    "min": 0.9999827824777585,
+    "ok": true
+  },
+  "chat_control": [
+    {
+      "content": "{\"answer\": \"C\"}",
+      "reasoning": null,
+      "latency_ms": 612.5477099999977,
+      "usage": {
+        "completion_tokens": 10,
+        "prompt_tokens": 128,
+        "total_tokens": 138,
+        "prompt_tokens_details": {
+          "cached_tokens": 110
+        }
+      },
+      "finish_reason": "stop",
+      "id": "s1"
+    },
+    {
+      "content": "{\"answer\": \"A\"}",
+      "reasoning": null,
+      "latency_ms": 614.8270379999979,
+      "usage": {
+        "completion_tokens": 10,
+        "prompt_tokens": 113,
+        "total_tokens": 123,
+        "prompt_tokens_details": {
+          "cached_tokens": 95
+        }
+      },
+      "finish_reason": "stop",
+      "id": "s2"
+    }
+  ]
+}

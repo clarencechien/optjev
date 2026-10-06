@@ -1,0 +1,79 @@
+{
+ "template_nothink_tail": "<|turn>system\n§SYSMARK§<turn|>\n<|turn>user\n§USRMARK§<turn|>\n<|turn>model\n<|channel>thought\n<channel|>",
+ "template_think_head": "<|turn>system\n<|think|>\n§SYSMARK§<turn|>\n<|turn>user\n§USRMARK§<turn|>\n<|turn>model\n",
+ "template_think_tail": "<|turn>system\n<|think|>\n§SYSMARK§<turn|>\n<|turn>user\n§USRMARK§<turn|>\n<|turn>model\n",
+ "think_kwargs_honored": true,
+ "close_tokenization": [
+  {
+   "id": 101,
+   "piece": "<channel|>"
+  }
+ ],
+ "rows": [
+  {
+   "id": "m_alarm_severity-e0000",
+   "gold": "C",
+   "A_probs": {
+    "C": 0.999999991488078,
+    "B": 8.238774551196909e-09,
+    "A": 2.731474234932195e-10
+   },
+   "A_mass": 1.000000008511922,
+   "B_probs": {
+    "C": 0.9999999986401009,
+    "B": 1.3598989939992415e-09
+   },
+   "B_mass": 1.000000001359899,
+   "B_first_token": "C",
+   "B_tokens": 406,
+   "B_truncated": false,
+   "B_stop_type": "word",
+   "B_thought_head": "*   Status: SMT-L4 Reflow Oven R-03, Zone 7 temperature exceeded upper limit by 9°C for 3 minutes.\n    *   Condition: Boards are still inside the oven.\n    *   Goal: Determine the urgency level (A, B, or C).\n\n    *   Reflow ovens control the temperature profile to ensure proper solder melting and wetting.\n    *   A temperature deviation of 9°C for 3 minutes is significant.\n    *   Since boards are",
+   "B_gen_ms": 7738.286071000001
+  },
+  {
+   "id": "m_alarm_severity-e0001",
+   "gold": "B",
+   "A_probs": {
+    "C": 0.9975599337890769,
+    "B": 0.002420155226111418,
+    "A": 1.99109848116276e-05
+   },
+   "A_mass": 0.9999963860944261,
+   "B_probs": {
+    "C": 0.9998392871936242,
+    "B": 0.0001597988167966982,
+    "A": 9.139895791621608e-07
+   },
+   "B_mass": 0.999997753339872,
+   "B_first_token": "C",
+   "B_tokens": 512,
+   "B_truncated": true,
+   "B_stop_type": "limit",
+   "B_thought_head": "*   Machine: SMT-L4 Reflow Oven R-03, Zone 7.\n    *   Issue: Temperature exceeded upper limit by 9°C for 3 minutes.\n    *   Current Status: No boards in the oven (empty), conveyor belt has automatically stopped.\n    *   Goal: Determine the urgency level (A, B, or C).\n\n    *   A (Not urgent): Information/reminder, no impact on production/quality, routine maintenance.\n    *   B (Urgent): Affects eff",
+   "B_gen_ms": 9722.626901999998
+  },
+  {
+   "id": "m_alarm_severity-e0002",
+   "gold": "A",
+   "A_probs": {
+    "A": 0.9997337595772994,
+    "B": 0.0002662316035727253,
+    "C": 8.819128016074687e-09
+   },
+   "A_mass": 0.999999986474297,
+   "B_probs": {
+    "B": 0.9999999942388036,
+    "A": 5.577739361170006e-09,
+    "C": 1.8345702249665212e-10
+   },
+   "B_mass": 1.0000000057611964,
+   "B_first_token": "B",
+   "B_tokens": 401,
+   "B_truncated": false,
+   "B_stop_type": "word",
+   "B_thought_head": "*   Status: SMT-L3 Reflow Oven R-01, Zone 4 temperature deviation +2°C.\n    *   Condition: Within warning range (警戒範圍內), machine is continuing to operate (機台持續運轉).\n    *   Question: Urgency of the alarm.\n    *   Options:\n        *   A. Not urgent (Routine maintenance/next changeover).\n        *   B. As soon as possible (Efficiency/quality risk, but machine can run, handle within shift).\n        * ",
+   "B_gen_ms": 7821.603811999999
+  }
+ ]
+}

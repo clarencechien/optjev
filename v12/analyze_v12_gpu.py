@@ -97,7 +97,8 @@ def run_e3():
         m = d0(os.path.join(V12, "d0", name))
         if not m:
             continue
-        jb, jn = jevbench_acc(os.path.join(V12, "jevbench", name))
+        jb_dir = os.path.join(V12, "jevbench-1slot", name)  # 31B rerun with one 8192-token slot (36 long items overflowed 2048)
+        jb, jn = jevbench_acc(jb_dir if os.path.isdir(jb_dir) else os.path.join(V12, "jevbench", name))
         res[name] = {"d0": mean_acc(m, TASKS), "weak": mean_acc(m, WEAK), "strong": mean_acc(m, STRONG), "per_task": {t: m[t]["acc_test"] for t in TASKS},
                      "T": {t: m[t]["T"] for t in TASKS}, "mass_p5_min": min(m[t]["mass_p5"] for t in TASKS),
                      "d2": d2_acc(os.path.join(V12, "d2", name)), "jevbench": jb, "jevbench_n": jn,
@@ -128,6 +129,10 @@ def run_e3():
     if "31b" in res:
         r = res["31b"]
         L += [f"- 31B 弱題三類 test 平均 {r['weak']:.3f} vs 26B {res['26b']['weak']:.3f}（門檻 +0.03）；十類平均 {r['d0']:.3f} vs 26B {res['26b']['d0']:.3f}（門檻 ≥）→ {'✓' if v['31b_weak_candidate'] else '✗'}。"]
+    if "12b" in res and res["12b"].get("latency") and res["26b"].get("lat_L4"):
+        l12, l26 = res["12b"]["latency"]["single_p50"], res["26b"]["lat_L4"]["single_p50"]
+        L += [f"- **速度但書（門檻沒寫到，照實記）**：同一張 L4 上 12B 單題 p50 {l12:.0f} ms，26B {l26:.0f} ms。12B 是 dense，每個 token 算 12B；26B-A4B 每個 token 只算約 4B。"
+              "所以 12B 當第一階在 L4 上不省延遲，只省一點記憶體（12.7 GB 對 17 GB）。準確率門檻照預登記判「取代」，實際要不要換，等 GB10 上的延遲。"]
     L += ["", "## D0 test（每類 100 筆）", "", "| task | E4B | 12B | 26B | 31B | 12B vs 26B p | 31B vs 26B p |", "|---|---|---|---|---|---|---|"]
     for t in TASKS:
         row = [f(e4b[t]["acc_test"]) if e4b else "—", f(res.get("12b", {}).get("per_task", {}).get(t)), f(m26[t]["acc_test"]), f(res.get("31b", {}).get("per_task", {}).get(t)),
@@ -142,12 +147,15 @@ def run_e3():
     for name, card in (("12b", "L4"), ("31b", "L40S")):
         if name in res:
             r = res[name]; lat = r["latency"] or {}
-            L.append(f"| {name.upper()} | {f(r['d2'])} | {f(r['jevbench'])} | {card} | {f(lat.get('single_p50'), 0)} ms | {f(lat.get('shared10_per_q'), 0)} ms | {f(r['mass_p5_min'], 4)} |")
+            L.append(f"| {name.upper()} | {f(r['d2'])} | {f(r['jevbench'])}（{r['jevbench_n']} 題） | {card} | {f(lat.get('single_p50'), 0)} ms | {f(lat.get('shared10_per_q'), 0)} ms | {f(r['mass_p5_min'], 4)} |")
     return res, L
 
 
 # ---------------------------------------------------------------- E4
 def e4_task(rows, trigger):
+    for r in rows:  # a stage-B call that failed (e.g. context overflow) leaves the row on stage A
+        if r.get("B") is not None and "raw_logprobs" not in r["B"]:
+            r["B_error"] = r["B"].get("error"); r["B"] = None
     letters = rows[0]["letters"]
     y = np.array([letters.index(r["gold"]) for r in rows])
     ZA = np.array([[r["A"]["raw_logprobs"].get(L) if r["A"]["raw_logprobs"].get(L) is not None else -30.0 for L in letters] for r in rows])
@@ -201,7 +209,7 @@ def run_e4():
             L = r["letters"]; yi = r["labels"].index(r["expected"])
             za = np.array([r["A"]["raw_logprobs"].get(x) if r["A"]["raw_logprobs"].get(x) is not None else -30.0 for x in L])
             a = int(za.argmax()); fa = a
-            if r["A_conf_T"] < trigger and r["B"]:
+            if r["A_conf_T"] < trigger and r["B"] and "raw_logprobs" in r["B"]:
                 zb = np.array([r["B"]["raw_logprobs"].get(x) if r["B"]["raw_logprobs"].get(x) is not None else -30.0 for x in L]); fa = int(zb.argmax()); jt += 1
             jn += 1; jA += int(a == yi); jF += int(fa == yi)
         res[str(trigger)] = {"per_task": per, "pooled": pooled, "jevbench": {"n": jn, "accA": jA / jn if jn else None, "accF": jF / jn if jn else None, "triggered": jt}}

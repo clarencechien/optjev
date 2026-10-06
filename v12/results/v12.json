@@ -819,5 +819,230 @@
    "transfer_ok": true
   },
   "verdict": "維持 T_task"
+ },
+ "e3": {
+  "26b": {
+   "d0": 0.9550000000000001,
+   "weak": 0.87,
+   "d2": 0.9577160418198154,
+   "jevbench": 0.8874458874458875,
+   "lat_L4": {
+    "single_p50": 136.97961049999918,
+    "shared10_per_q": 73.09591650000158,
+    "decode_floor": 25.736767000001493
+   },
+   "lat_L40S": {
+    "single_p50": 56.40210900000042,
+    "shared10_per_q": 31.542109500001914,
+    "decode_floor": 13.359263000001675
+   }
+  },
+  "e4b": {
+   "d0": 0.8850792079207921,
+   "weak": 0.7599999999999999,
+   "cascade": {
+    "tau": 0.8597021735523455,
+    "acc": 0.942057942057942,
+    "sent": 0.2517482517482518,
+    "per_task": {
+     "m_alarm_severity": {
+      "acc": 0.82,
+      "sent": 0.79
+     },
+     "m_alarm_category": {
+      "acc": 0.95,
+      "sent": 0.09
+     },
+     "m_needs_dispatch": {
+      "acc": 0.98,
+      "sent": 0.28
+     },
+     "q_spc_action": {
+      "acc": 0.87,
+      "sent": 0.51
+     },
+     "q_defect_root": {
+      "acc": 0.96,
+      "sent": 0.27
+     },
+     "p_uph_anomaly": {
+      "acc": 0.93,
+      "sent": 0.47
+     },
+     "p_line_change": {
+      "acc": 0.99,
+      "sent": 0.0
+     },
+     "x_ticket_route": {
+      "acc": 1.0,
+      "sent": 0.03
+     },
+     "x_escalate": {
+      "acc": 0.98,
+      "sent": 0.03
+     },
+     "x_10way_intent": {
+      "acc": 0.9405940594059405,
+      "sent": 0.04950495049504951
+     }
+    }
+   }
+  },
+  "12b": {
+   "d0": 0.9500594059405941,
+   "weak": 0.8766666666666666,
+   "strong": 0.9815134370579914,
+   "per_task": {
+    "m_alarm_severity": 0.83,
+    "m_alarm_category": 0.96,
+    "m_needs_dispatch": 1.0,
+    "q_spc_action": 0.86,
+    "q_defect_root": 0.98,
+    "p_uph_anomaly": 0.94,
+    "p_line_change": 1.0,
+    "x_ticket_route": 1.0,
+    "x_escalate": 0.99,
+    "x_10way_intent": 0.9405940594059405
+   },
+   "T": {
+    "m_alarm_severity": 5.058189898831036,
+    "m_alarm_category": 3.5747144932987895,
+    "m_needs_dispatch": 0.05000000000000001,
+    "q_spc_action": 3.221181754360687,
+    "q_defect_root": 1.7853929824502315,
+    "p_uph_anomaly": 4.7189391388876905,
+    "p_line_change": 0.05000000000000001,
+    "x_ticket_route": 2.8035849691027295,
+    "x_escalate": 3.5747144932987895,
+    "x_10way_intent": 2.2764675374334744
+   },
+   "mass_p5_min": 0.9999388950274996,
+   "d2": 0.9698374581393449,
+   "jevbench": 0.8614718614718615,
+   "jevbench_n": 231,
+   "latency": {
+    "single_p50": 167.5817355000504,
+    "shared10_per_q": 88.33296449995487,
+    "decode_floor": 63.40222950007046
+   },
+   "mcnemar_vs_26b": {
+    "m_alarm_severity": 1.0,
+    "m_alarm_category": 0.5,
+    "m_needs_dispatch": 1.0,
+    "q_spc_action": 1.0,
+    "q_defect_root": 1.0,
+    "p_uph_anomaly": 1.0,
+    "p_line_change": 1.0,
+    "x_ticket_route": 1.0,
+    "x_escalate": 1.0,
+    "x_10way_intent": 0.03125
+   },
+   "cascade": {
+    "tau": 0.9703880642191821,
+    "acc": 0.957042957042957,
+    "sent": 0.24775224775224775,
+    "per_task": {
+     "m_alarm_severity": {
+      "acc": 0.82,
+      "sent": 0.98
+     },
+     "m_alarm_category": {
+      "acc": 0.98,
+      "sent": 0.19
+     },
+     "m_needs_dispatch": {
+      "acc": 1.0,
+      "sent": 0.0
+     },
+     "q_spc_action": {
+      "acc": 0.86,
+      "sent": 0.48
+     },
+     "q_defect_root": {
+      "acc": 0.98,
+      "sent": 0.18
+     },
+     "p_uph_anomaly": {
+      "acc": 0.93,
+      "sent": 0.38
+     },
+     "p_line_change": {
+      "acc": 1.0,
+      "sent": 0.0
+     },
+     "x_ticket_route": {
+      "acc": 1.0,
+      "sent": 0.14
+     },
+     "x_escalate": {
+      "acc": 1.0,
+      "sent": 0.03
+     },
+     "x_10way_intent": {
+      "acc": 1.0,
+      "sent": 0.09900990099009901
+     }
+    }
+   }
+  },
+  "31b": {
+   "d0": 0.9650000000000001,
+   "weak": 0.89,
+   "strong": 0.9971428571428572,
+   "per_task": {
+    "m_alarm_severity": 0.85,
+    "m_alarm_category": 0.99,
+    "m_needs_dispatch": 1.0,
+    "q_spc_action": 0.85,
+    "q_defect_root": 0.99,
+    "p_uph_anomaly": 0.97,
+    "p_line_change": 1.0,
+    "x_ticket_route": 1.0,
+    "x_escalate": 1.0,
+    "x_10way_intent": 1.0
+   },
+   "T": {
+    "m_alarm_severity": 5.811612343399262,
+    "m_alarm_category": 5.613338867554067,
+    "m_needs_dispatch": 0.05000000000000001,
+    "q_spc_action": 7.67184204465006,
+    "q_defect_root": 4.107171792459714,
+    "p_uph_anomaly": 5.058189898831036,
+    "p_line_change": 0.05000000000000001,
+    "x_ticket_route": 0.05000000000000001,
+    "x_escalate": 0.05000000000000001,
+    "x_10way_intent": 0.05000000000000001
+   },
+   "mass_p5_min": 0.9999887557076214,
+   "d2": 0.9656673201012824,
+   "jevbench": 0.9282051282051282,
+   "jevbench_n": 195,
+   "latency": {
+    "single_p50": 180.63163499999746,
+    "shared10_per_q": 82.5717710000049,
+    "decode_floor": 58.31868300003862
+   },
+   "mcnemar_vs_26b": {
+    "m_alarm_severity": 0.5810546875,
+    "m_alarm_category": 1.0,
+    "m_needs_dispatch": 1.0,
+    "q_spc_action": 1.0,
+    "q_defect_root": 1.0,
+    "p_uph_anomaly": 0.21875,
+    "p_line_change": 1.0,
+    "x_ticket_route": 1.0,
+    "x_escalate": 1.0,
+    "x_10way_intent": 1.0
+   }
+  },
+  "gates": {
+   "12b_first_stage": true,
+   "12b_cygnet_sanity": true,
+   "31b_weak_candidate": false
+  },
+  "verdict": {
+   "12b": "取代 E4B 當第一階",
+   "31b": "不列"
+  }
  }
 }

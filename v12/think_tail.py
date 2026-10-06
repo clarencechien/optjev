@@ -83,6 +83,13 @@ class Thinker:
 
 
 def stage_b(th, tr1, prompt_msgs_or_state, letters, session, render):
+    try:
+        return _stage_b(th, tr1, prompt_msgs_or_state, letters, session, render)
+    except Exception as e:  # noqa: BLE001  (e.g. prompt + thought longer than the slot): the row stays on stage A
+        return {"error": repr(e)[:300]}
+
+
+def _stage_b(th, tr1, prompt_msgs_or_state, letters, session, render):
     p1 = render(tr1, prompt_msgs_or_state)
     t = th.think(p1, session)
     t0 = time.perf_counter()
@@ -94,7 +101,8 @@ def stage_b(th, tr1, prompt_msgs_or_state, letters, session, render):
 
 def main(base_url, out_dir, args="", **kw):
     a = dict(zip(*[iter(args.split())] * 2)) if args else {}
-    tasks = a.get("--tasks", "m_alarm_severity,q_spc_action,p_uph_anomaly").split(",")
+    tasks = a.get("--tasks", "m_alarm_severity,q_spc_action,p_uph_anomaly")
+    tasks = [] if tasks == "none" else tasks.split(",")
     trigger = float(a.get("--trigger", 0.9)); budget = int(a.get("--budget", 512)); workers = int(a.get("--workers", 4))
     step0 = a.get("--step0", "0") == "1"; limit = int(a.get("--limit", 0)); do_jb = a.get("--jevbench", "1") == "1"
     jb_T = float(a.get("--jb-T", 3.28))
@@ -182,5 +190,5 @@ def main(base_url, out_dir, args="", **kw):
                                     "A_conf_T": confs[i], "B": B.get(i)}, ensure_ascii=False) + "\n")
         summary["jevbench"] = {"n": len(items), "T": jb_T, "n_triggered": len(trig), "s": round(time.time() - t0, 1)}
         print(f"[jevbench] {summary['jevbench']}", flush=True)
-    json.dump(summary, open(os.path.join(out_dir, "_summary.json"), "w"), indent=1)
+    json.dump(summary, open(os.path.join(out_dir, "_summary.json" if tasks else "_summary_jevbench.json"), "w"), indent=1)
     return summary
