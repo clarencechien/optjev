@@ -525,10 +525,10 @@ button, summary { transition: transform var(--dur-fast) var(--ease-out); }
 <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">theme · auto</button>
 <main class="report">
 
-<p class="eyebrow">校正報告 · jevlike · Gemma 4 26B-A4B · 2026-10-06</p>
+<p class="eyebrow">校正報告 · jevlike · Gemma 4 26B-A4B · 第 12 輪後 · 2026-10-06</p>
 <h1 class="display">不寫一個字，<br>只讀<em>一個字母</em></h1>
 <p class="lede">jevlike 把產線的判斷題寫成選擇題，讓 Gemma 4 讀完現場狀況後，直接看它的下一個字想寫 A 還是 B。不生成文字、不解析 JSON，一次前向計算就拿到每個選項的機率。這份說明它為什麼準、信心要怎麼校、校對了怎麼驗，以及什麼時候會失靈。</p>
-<p class="byline">整理自 clarencechien/jevlike 十一輪實驗 · 產線數字全部來自合成資料 · 外部數字 2026-10-06 查</p>
+<p class="byline">整理自 clarencechien/jevlike 十二輪實驗 · 產線數字全部來自合成資料 · 外部數字 2026-10-06 查</p>
 
 <p class="eyebrow">01 · 量測結果</p>
 <h2>零訓練，十類裡七類九成八以上</h2>
@@ -536,7 +536,7 @@ button, summary { transition: transform var(--dur-fast) var(--ease-out); }
   <div class="stat"><p class="label">零標註達 98% 以上</p><div class="value">7 / 10</div><div class="delta">類產線判斷題</div></div>
   <div class="stat"><p class="label">JevBench 公開 231 題</p><div class="value">88.7%</div><div class="delta">自跑；hard 77.5%</div></div>
   <div class="stat"><p class="label">L4 單題 p50</p><div class="value">137 ms</div><div class="delta">同一現場第 2 題起 73 ms</div></div>
-  <div class="stat"><p class="label">十一輪實驗合計</p><div class="value">$28.5</div><div class="delta">約 16 GPU 小時</div></div>
+  <div class="stat"><p class="label">十二輪實驗合計</p><div class="value">$30</div><div class="delta">約 17 GPU 小時</div></div>
 </div>
 
 <p class="eyebrow">02 · 量測原理</p>
@@ -699,7 +699,7 @@ A. 不急　B. 盡快　C. 停線
 </div>
 <ul>
   <li><strong>T 會影響的：</strong>信心的數字，以及哪些題自動處理、哪些升級。</li>
-  <li><strong>T 不會影響的：</strong>選中的字母。只有改用「機率加權等級」這類讀法時，T 才會改到答案，這是第 12 輪要驗的事。</li>
+  <li><strong>T 不會影響的：</strong>選中的字母。只有改用「機率加權等級」這類讀法時，T 才會改到答案；第 12 輪驗過，急迫度只多 1 點，沒有採用。</li>
   <li><strong>現況：</strong>jevlike 目前在分析腳本裡套用 T，lock 檔已經是上線用的格式，但還沒有常駐的決策服務。</li>
 </ul>
 <div class="note warn">
@@ -718,7 +718,7 @@ A. 不急　B. 盡快　C. 停線
     <tr><td>判準寫成可數的規則</td><td>把「即將造成批量問題」改成「先數什麼、數到幾就是哪一級」。</td><td>SPC 0.815 → 0.95；急迫度 0.81 → 0.885。沒有訓練，只改選項後面那段字。</td></tr>
     <tr><td>模板一個 token 都不能錯</td><td>開頭要有 <code>&lt;bos&gt;</code>、思考區塊留空、Gemma 4 的快取要開 <code>--swa-full</code>。</td><td>少 <code>&lt;bos&gt;</code>：0.931，補上 0.958。思考沒關：字母總機率 0.003。沒開 swa-full：231 ms，開了 73 ms。</td></tr>
     <tr><td>信心校準過才當門檻</td><td>見 §04。</td><td>5% 預算下七類強題自動處理 98–100%、實際錯 0–2%，十類全部守住。</td></tr>
-    <tr><td>先寫門檻再跑</td><td>十一輪都先寫好「多少算過」才開機，沒過的不用。</td><td>擋下的有：JSON 前綴 +1.3 點、順序平均 −1.3 點、多題擠一次前向後面翻 11–13%、通用 LoRA −3 點。</td></tr>
+    <tr><td>先寫門檻再跑</td><td>十二輪都先寫好「多少算過」才開機，沒過的不用。</td><td>擋下的有：JSON 前綴 +1.3 點、順序平均 −1.3 點、多題擠一次前向後面翻 11–13%、通用 LoRA −3 點；第 12 輪的四件也都沒過，見 §09。</td></tr>
   </tbody>
 </table>
 </div>
@@ -730,7 +730,9 @@ A. 不急　B. 盡快　C. 停線
   <thead><tr><th>系統</th><th>底模</th><th>訓練</th><th class="num">公開 231 題</th></tr></thead>
   <tbody>
     <tr><td><strong>jevlike</strong></td><td>Gemma 4 26B-A4B</td><td>零訓練</td><td class="num">88.7%</td></tr>
+    <tr><td>同讀法換 31B（第 12 輪）</td><td>Gemma 4 31B</td><td>零訓練</td><td class="num">91.3%</td></tr>
     <tr><td>Cygnet</td><td>Gemma 4 12B</td><td>零訓練（凍結）</td><td class="num">87.9%</td></tr>
+    <tr><td>同讀法換 12B（第 12 輪）</td><td>Gemma 4 12B</td><td>零訓練</td><td class="num">86.1%</td></tr>
     <tr><td>Drex 1.5</td><td>未公開</td><td>訓練</td><td class="num">86.2%</td></tr>
     <tr><td>Winnow-12B Q8</td><td>Gemma 4 12B</td><td>LoRA 合併</td><td class="num">85.7%</td></tr>
     <tr><td>Open-Jev-27B</td><td>Qwen 27B</td><td>LoRA + 決策頭</td><td class="num">85.3%</td></tr>
@@ -738,7 +740,7 @@ A. 不急　B. 盡快　C. 停線
   </tbody>
 </table>
 </div>
-<p>各家自跑，不是官方排名。官方封閉題排行 v1.5.4 的第一名 Cygnet（73.70）是凍結的 Gemma 4 12B，用的是跟 jevlike 同一派的讀法。零訓練讀字母這條路，在別人的尺上也站得住。jevlike 尚未送官方評測。</p>
+<p>各家自跑，不是官方排名。官方封閉題排行 v1.5.4 的第一名 Cygnet（73.70）是凍結的 Gemma 4 12B，用的是跟 jevlike 同一派的讀法。零訓練讀字母這條路，在別人的尺上也站得住。jevlike 尚未送官方評測。同讀法換成 31B 在這把尺上最高，但同一張卡慢三倍，所以預設仍是 26B。</p>
 
 <p class="eyebrow">07 · 失效模式</p>
 <h2>它讀得出文字裡的答案，讀不出文字外的未來</h2>
@@ -773,15 +775,26 @@ A. 不急　B. 盡快　C. 停線
 </table>
 </div>
 
-<p class="eyebrow">09 · 下次校正</p>
-<h2>第 12 輪：零訓練能借的，先借</h2>
-<ol>
-  <li><strong>順序型題目改讀機率加權等級。</strong>急迫度的錯集中在相鄰等級，Cygnet 就是這樣讀分數題的。用現有結果離線重算。</li>
-  <li><strong>溫度改成每種題型一個。</strong>新題上線沒有標註也能直接套用 §04 的流程。同樣離線重算。</li>
-  <li><strong>階梯補 Gemma 4 12B 與 31B。</strong>官方第一名用 12B；31B 可以跟 Clef 27B 搶弱題候選。約 3 美元。</li>
-  <li><strong>低信心才先想再答。</strong>只在信心低於 0.7 時讓 26B 想 512 token 再讀字母。約 1 美元。</li>
-</ol>
-<p class="byline">每一件都先寫好門檻，見 optjev 的 docs/handoff-jevlike-v12.md · 資料來源：jevlike README、results/REPORT.md 與 05、06、09、11、13、15、16 分項報告；optjev results/01-retro.md；JevBench v1.5.4 與各專案模型卡。</p>
+<p class="eyebrow">09 · 第 12 輪校正結果</p>
+<h2>借來的四件都試過：<span class="nowrap">做法不變</span></h2>
+<p>Gemma 4 這條線上別人的新做法裡，不用訓練就能借的四件，第 12 輪都先寫好門檻再跑。結論是<span class="mark">四件都沒有好到值得換</span>，現在的 26B 加每類一個溫度仍是預設。</p>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>借了什麼</th><th>結果</th><th>判定</th></tr></thead>
+  <tbody>
+    <tr><td>分數題改讀機率加權等級<span class="sub">Cygnet</span></td><td>急迫度 553 題從 84.3% 到 85.4%，翻對 9、翻錯 3。門檻要 +2 點。拿 SPC 試反而變差。</td><td class="nowrap">持平</td></tr>
+    <tr><td>溫度每種題型一個<span class="sub">decisio</span></td><td>在十類裡比每類一個略差（ECE 0.038 對 0.027）。但搬到英文 JevBench 只剩 0.010，新題沒標註時可以先用。</td><td class="nowrap">維持每類</td></tr>
+    <tr><td>換成 Gemma 4 12B 當第一關</td><td>準確率夠：12B 先答、四分之一送 26B，95.7%。但 L4 上 12B 一題 168 ms，比 26B 的 137 ms 還慢。</td><td class="nowrap">不省時間</td></tr>
+    <tr><td>換成 Gemma 4 31B</td><td>弱題只比 26B 多 2 點，門檻要 3 點。英文 JevBench 91.3% 最高，但同一張 L40S 一題 181 ms，是 26B 的三倍。</td><td class="nowrap">不列</td></tr>
+    <tr><td>沒把握時先想再答<span class="sub">Rune</span></td><td>弱題 87.0% 到 89.0%，但自動處理比例只多 2 點，門檻要 5 點。觸發的題：SPC 50% 到 79%、UPH 50% 到 100%、急迫度 44% 降到 38%。每題多十幾秒。</td><td class="nowrap">持平</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="note">
+  <p class="head">下一步只剩 GB10 能回答的兩件</p>
+  <p>一、31B 在 GB10 上的速度；二、只對 SPC、UPH 開「先想再答」。第二件是看了結果才發現的，要先重新寫門檻才能驗。急迫度不要開，它想完反而更偏向「停線」。</p>
+</div>
+<p class="byline">第 12 輪報告 jevlike results/17-v12.md、交接 docs/handoff-v12-borrowed-gemma.md · 資料來源：jevlike README、results/REPORT.md 與 05、06、09、11、13、15、16、17 分項報告；optjev results/01-retro.md；JevBench v1.5.4 與各專案模型卡。</p>
 
 </main>
 <script>
