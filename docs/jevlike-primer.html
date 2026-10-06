@@ -1,0 +1,332 @@
+<title>jevlike 懶人包</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: one reading column (~44rem) with wider bands for the pipeline, the two readout cards and tables; instrument-panel feel. */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --ink: #18202b;
+  --muted: #5a6575;
+  --line: #d6dce5;
+  --accent: #2346a8;
+  --accent-soft: #e3e9f8;
+  --pick: #b4610a;
+  --pick-soft: #f8ead9;
+  --good: #17784a;
+  --bad: #b3262e;
+  --bar-track: #e6eaf0;
+  --font-display: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --col: 44rem;
+  --wide: 64rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141b; --surface: #171e28; --ink: #e4e9f1; --muted: #9aa6b6; --line: #2a3442;
+    --accent: #8ea8ff; --accent-soft: #1e2a46; --pick: #eda55a; --pick-soft: #3a2a17;
+    --good: #5cc98f; --bad: #f07a80; --bar-track: #242e3b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141b; --surface: #171e28; --ink: #e4e9f1; --muted: #9aa6b6; --line: #2a3442;
+  --accent: #8ea8ff; --accent-soft: #1e2a46; --pick: #eda55a; --pick-soft: #3a2a17;
+  --good: #5cc98f; --bad: #f07a80; --bar-track: #242e3b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 1rem; line-height: 1.75;
+  padding-inline: 16px; padding-block: 0 4rem;
+}
+main { display: grid; gap: 3.5rem; }
+section, header, footer { width: 100%; max-width: var(--col); margin-inline: auto; display: grid; gap: 1rem; }
+.wide { max-width: var(--wide); }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.3; }
+h1 { font-size: clamp(1.9rem, 5.5vw, 3rem); font-weight: 900; letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.35rem, 3.2vw, 1.75rem); font-weight: 700; }
+h3 { font-size: 1.08rem; font-weight: 700; }
+p { margin: 0; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 1.12rem; color: var(--ink); }
+.muted { color: var(--muted); }
+code, .mono { font-family: var(--font-mono); font-size: 0.88em; }
+code { background: var(--accent-soft); color: var(--ink); padding: 0.05em 0.35em; border-radius: 4px; word-break: break-word; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* header */
+header { padding-block: 3.5rem 0.5rem; }
+.scoreboard { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); margin-top: 1rem; max-width: var(--wide); width: 100%; margin-inline: auto; }
+.stat { padding: 1rem 1rem 1rem 0; display: grid; gap: 0.25rem; align-content: start; min-width: 0; }
+.stat + .stat { padding-left: 1rem; border-left: 1px solid var(--line); }
+.stat b { font-family: var(--font-mono); font-size: clamp(1.5rem, 3.6vw, 2.1rem); font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stat span { font-size: 0.86rem; color: var(--muted); line-height: 1.5; }
+@media (max-width: 720px) {
+  .scoreboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat:nth-child(3) { padding-left: 0; border-left: 0; }
+  .stat:nth-child(n+3) { border-top: 1px solid var(--line); }
+}
+
+/* pipeline */
+.pipeline { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.75rem; counter-reset: step; }
+.pipeline li { counter-increment: step; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0.9rem; display: grid; gap: 0.4rem; align-content: start; min-width: 0; }
+.pipeline li::before { content: "0" counter(step); font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); font-weight: 600; }
+.pipeline li p { font-size: 0.92rem; line-height: 1.65; color: var(--muted); }
+@media (max-width: 900px) { .pipeline { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .pipeline { grid-template-columns: 1fr; } }
+
+/* readout cards */
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+@media (max-width: 760px) { .cards { grid-template-columns: 1fr; } }
+.readout { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.1rem; display: grid; gap: 0.85rem; min-width: 0; align-content: start; }
+.readout header { padding: 0; max-width: none; gap: 0.3rem; }
+.tag { display: inline-flex; align-items: center; gap: 0.35rem; font-family: var(--font-mono); font-size: 0.76rem; letter-spacing: 0.04em; padding: 0.1rem 0.5rem; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); width: fit-content; }
+.tag.ok { color: var(--good); border-color: currentColor; }
+.tag.no { color: var(--bad); border-color: currentColor; }
+.prompt { font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.6; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 0.7rem 0.8rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; color: var(--ink); }
+.prompt .sys { color: var(--muted); }
+.prompt .stop { color: var(--pick); font-weight: 600; }
+.bars { display: grid; gap: 0.45rem; }
+.bars-title { font-size: 0.82rem; color: var(--muted); font-family: var(--font-mono); letter-spacing: 0.03em; }
+.bar { display: grid; grid-template-columns: 5.6rem minmax(0, 1fr) 4.4rem; align-items: center; gap: 0.6rem; font-size: 0.9rem; }
+.bar .lab { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar .track { height: 0.7rem; background: var(--bar-track); border-radius: 3px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--accent); min-width: 2px; border-radius: 3px; }
+.bar.pick .fill { background: var(--pick); }
+.bar .val { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; font-size: 0.86rem; }
+.verdict { font-size: 0.92rem; border-top: 1px dashed var(--line); padding-top: 0.75rem; }
+
+/* reasons */
+.reasons { display: grid; gap: 1.6rem; }
+.reason { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 1.25rem; border-top: 1px solid var(--line); padding-top: 1.2rem; }
+.reason .key { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); padding-top: 0.25rem; }
+.reason .body { display: grid; gap: 0.7rem; min-width: 0; }
+.evidence { font-size: 0.92rem; background: var(--surface); border-left: 3px solid var(--accent); padding: 0.6rem 0.85rem; border-radius: 0 6px 6px 0; }
+@media (max-width: 640px) { .reason { grid-template-columns: 1fr; gap: 0.4rem; } }
+
+/* tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; min-width: 32rem; }
+th, td { text-align: left; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 700; font-size: 0.82rem; color: var(--muted); background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.us td { background: var(--accent-soft); }
+.small { font-size: 0.86rem; }
+
+/* failure list */
+.fails { display: grid; gap: 0.8rem; margin: 0; padding: 0; list-style: none; }
+.fails li { display: grid; gap: 0.25rem; padding: 0.85rem 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.fails li strong { font-weight: 700; }
+.fails li.hard { border-color: var(--bad); }
+
+/* glossary */
+dl.gloss { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 0.6rem 1.2rem; margin: 0; }
+dl.gloss dt { font-family: var(--font-mono); font-size: 0.86rem; font-weight: 600; padding-top: 0.15rem; }
+dl.gloss dd { margin: 0; font-size: 0.94rem; }
+dl.gloss dd.lr { background: var(--pick-soft); padding: 0.5rem 0.7rem; border-radius: 6px; }
+@media (max-width: 560px) { dl.gloss { grid-template-columns: 1fr; gap: 0.15rem; } dl.gloss dd { margin-bottom: 0.7rem; } }
+
+.next { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.45rem; }
+footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 1.2rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .fill { transition: width 0.6s ease-out; }
+}
+</style>
+
+<main>
+<header>
+  <p class="eyebrow">jevlike · Gemma 4 26B-A4B · 零訓練 · 十一輪實驗</p>
+  <h1>不寫一個字，只讀一個字母的機率</h1>
+  <p class="lede">jevlike 把產線的判斷題寫成選擇題，讓 Gemma 4 讀完現場狀況後，直接看它的下一個字想寫 A 還是 B。不生成文字，也不解析 JSON。一次前向計算，就拿到每個選項的機率。這頁說明它為什麼準、為什麼快，以及什麼時候會失靈。</p>
+</header>
+
+<div class="scoreboard" role="list">
+  <div class="stat" role="listitem"><b>7 / 10</b><span>類判斷題零標註就達 98% 以上</span></div>
+  <div class="stat" role="listitem"><b>88.7%</b><span>JevBench 公開 231 題（自跑，hard 77.5%）</span></div>
+  <div class="stat" role="listitem"><b>137 ms</b><span>L4 單題 p50；同一現場的第 2 題起 73 ms</span></div>
+  <div class="stat" role="listitem"><b>$28.5</b><span>十一輪實驗合計，約 16 GPU 小時</span></div>
+</div>
+
+<section class="wide" aria-labelledby="how">
+  <p class="eyebrow">怎麼運作</p>
+  <h2 id="how">五個步驟，只有第二步用到 GPU</h2>
+  <ol class="pipeline">
+    <li><h3>停在開口那一刻</h3><p>現場狀況、題目、每個選項的判準拼成 prompt，結尾停在模型要回答的位置，思考區塊留空。</p></li>
+    <li><h3>讀第一個字</h3><p>只做一次前向計算，取下一個 token 前 40 名的 logprob，挑出 A、B、C 這些字母。</p></li>
+    <li><h3>字母之間正規化</h3><p>只在字母之間做 softmax，得到每個選項的機率。字母總機率要在 0.9 以上，否則代表模板壞了。</p></li>
+    <li><h3>溫度校準</h3><p>logit 除以溫度 T，把「永遠說 99%」拉回真實的把握。T 用幾十到一百筆標註擬合。</p></li>
+    <li><h3>對照錯誤預算</h3><p>給定可容忍的錯誤率，例如 5%，反推信心門檻。過門檻自動處理，不過就升級給人或大模型。</p></li>
+  </ol>
+</section>
+
+<section class="wide" aria-labelledby="ex">
+  <p class="eyebrow">兩個真實例子（D0 合成資料，26B 原始輸出）</p>
+  <h2 id="ex">同一個方法，一題穩穩答對，一題自信地答錯</h2>
+  <div class="cards">
+    <article class="readout" aria-label="強題例子">
+      <header>
+        <span class="tag ok">x_escalate · 答對</span>
+        <h3>要不要立即升級通知線長？</h3>
+      </header>
+      <div class="prompt"><span class="sys">【狀態】</span>
+SMT-L6 NXT-03 板子卡在軌道，已經停了 85 分鐘還沒修好，後段 3 站都在等板
+<span class="sys">【問題】</span>這件事是否需要立即升級通知線長？
+A. 是：影響整線出貨、停線超過 30 分鐘…
+B. 否：單站短暫問題、已依 SOP 處理完畢…
+<span class="sys">只回答代表正確選項的字母。</span>
+<span class="stop">▌ 模型的下一個字 →</span></div>
+      <div class="bars">
+        <p class="bars-title">讀到的機率（原始 logprob）</p>
+        <div class="bar pick"><span class="lab">A 是</span><span class="track"><span class="fill" style="width:100%"></span></span><span class="val">100.0%</span></div>
+        <div class="bar"><span class="lab">B 否</span><span class="track"><span class="fill" style="width:0%"></span></span><span class="val">0.0%</span></div>
+      </div>
+      <p class="verdict">A 的 logprob 是 0.00，B 是 −20.85。停線 85 分鐘、後段在等，判準寫得很清楚，模型沒有猶豫，標準答案也是 A。</p>
+    </article>
+
+    <article class="readout" aria-label="弱題例子">
+      <header>
+        <span class="tag no">m_alarm_severity · 答錯</span>
+        <h3>這則 alarm 的處置急迫度？</h3>
+      </header>
+      <div class="prompt"><span class="sys">【狀態】</span>
+SMT-L4 回焊爐 R-03 第 7 區溫度超上限 9°C 持續 3 分鐘，爐內無板、輸送帶已自動停止
+<span class="sys">【問題】</span>這則機台 alarm 的處置急迫度？
+A. 不急　B. 盡快　C. 停線
+<span class="stop">▌ 模型的下一個字 →</span></div>
+      <div class="bars">
+        <p class="bars-title">校準前（原始）</p>
+        <div class="bar pick"><span class="lab">C 停線</span><span class="track"><span class="fill" style="width:99.8%"></span></span><span class="val">99.8%</span></div>
+        <div class="bar"><span class="lab">B 盡快</span><span class="track"><span class="fill" style="width:0.16%"></span></span><span class="val">0.2%</span></div>
+        <div class="bar"><span class="lab">A 不急</span><span class="track"><span class="fill" style="width:0%"></span></span><span class="val">0.0%</span></div>
+        <p class="bars-title">校準後（T = 6.23）</p>
+        <div class="bar pick"><span class="lab">C 停線</span><span class="track"><span class="fill" style="width:65.4%"></span></span><span class="val">65.4%</span></div>
+        <div class="bar"><span class="lab">B 盡快</span><span class="track"><span class="fill" style="width:23.3%"></span></span><span class="val">23.3%</span></div>
+        <div class="bar"><span class="lab">A 不急</span><span class="track"><span class="fill" style="width:11.3%"></span></span><span class="val">11.3%</span></div>
+      </div>
+      <p class="verdict">標準答案是 B：爐內沒板、輸送帶已停，本班處理即可。模型看到「超上限」就偏向較嚴重的一級，原始信心卻有 99.8%。校準後只剩 65%，低於急迫度的門檻，這題會升級給人，不會被自動執行。</p>
+    </article>
+  </div>
+</section>
+
+<section aria-labelledby="why">
+  <p class="eyebrow">為什麼成績好</p>
+  <h2 id="why">六個原因，每個都有量過的證據</h2>
+  <div class="reasons">
+    <div class="reason">
+      <p class="key">題目性質</p>
+      <div class="body">
+        <h3>答案就寫在題目裡，這是判讀，不是預測</h3>
+        <p>每一題的答案都能從現場狀況加上判準推出來，模型做的是閱讀理解。Gemma 4 26B 本來就懂吸嘴、回焊爐、SPC 這些詞，所以不用訓練就能判。傳統機器學習只看得到字面，要先餵大量標註。</p>
+        <p class="evidence">TF-IDF 加 LR 用 100 筆標註：alarm 分類 0.85、SPC 0.77、工單分派 0.84。jevlike 零標註：0.98、0.86、1.00。</p>
+      </div>
+    </div>
+    <div class="reason">
+      <p class="key">模型</p>
+      <div class="body">
+        <h3>26B 的知識，4B 的算力</h3>
+        <p>26B-A4B 是混合專家模型，每個 token 只啟動約 4B 參數。所以它懂得像大模型，算得像小模型：讀一個字的時間跟 E4B 差不多。階梯實驗證明大模型真的有用：十類裡四類 E2B 就夠，六類非 26B 不可。</p>
+        <p class="evidence">D0 平均：E4B 88.5%、26B 95.5%。每多讀一個字的時間：26B 26 ms、E4B 31 ms。E4B 先答、沒把握才問 26B，準確率 95.2%，26B 只要處理三分之一。</p>
+      </div>
+    </div>
+    <div class="reason">
+      <p class="key">判準</p>
+      <div class="body">
+        <h3>把判準寫成可以數的規則</h3>
+        <p>弱題的錯誤集中在相鄰等級，原因是判準用形容詞，例如「即將造成批量問題」「已連續多點」。改寫成「先數什麼、數到幾就是哪一級」之後，零標註就大幅改善，換一組種子的題目也一樣。</p>
+        <p class="evidence">SPC 動作 0.815 → 0.95；急迫度 0.81 → 0.885。沒有訓練，只改了選項後面那段文字。</p>
+      </div>
+    </div>
+    <div class="reason">
+      <p class="key">模板</p>
+      <div class="body">
+        <h3>模板差一個 token 就會掉分</h3>
+        <p>讀第一個字的前提是 prompt 一個 token 都不能錯。jevlike 找到三個別人沒寫過的坑：開頭要有 <code>&lt;bos&gt;</code>、思考區塊要留空、Gemma 4 的滑動視窗快取要用 <code>--swa-full</code> 才能重用同一個現場。</p>
+        <p class="evidence">SGLang 少了 <code>&lt;bos&gt;</code>：0.931，補上後 0.958。思考沒關：字母總機率只剩 0.003。沒開 <code>--swa-full</code>：同一現場第 2 題起 231 ms，開了 73 ms。</p>
+      </div>
+    </div>
+    <div class="reason">
+      <p class="key">校準</p>
+      <div class="body">
+        <h3>信心要校準過才能當門檻</h3>
+        <p>模型幾乎永遠說自己有 99% 把握，原始信心分不出對錯。溫度校準把信心拉回現實，再用錯誤預算反推門檻。門檻寫進 lock 檔，換模型或換引擎時重跑一次就知道有沒有漂移。</p>
+        <p class="evidence">5% 錯誤預算下，七類強題自動處理 98–100%，實際錯 0–2%，十類全部守住預算。換錯引擎時 lock 檢查抓到 7 項漂移。</p>
+      </div>
+    </div>
+    <div class="reason">
+      <p class="key">紀律</p>
+      <div class="body">
+        <h3>每輪先寫門檻再跑，沒過就不用</h3>
+        <p>十一輪實驗都先寫好「多少算過」才開機。很多看起來聰明的招數因此被擋下來，留下的都是量得到效果的做法。</p>
+        <p class="evidence">沒過的有：JSON 前綴 +1.3 點、選項順序平均 −1.3 點、多題擠一次前向（後面的題翻 11–13%）、通用 LoRA（−3 點）。Clef 27B 比較準，但不比較快，所以沒換。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="wide" aria-labelledby="cmp">
+  <p class="eyebrow">跟別人比</p>
+  <h2 id="cmp">同一把尺：JevBench 公開 231 題</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>系統</th><th>底模</th><th>訓練</th><th class="num">公開 231 題</th></tr></thead>
+      <tbody>
+        <tr class="us"><td><strong>jevlike</strong></td><td>Gemma 4 26B-A4B</td><td>零訓練</td><td class="num">88.7%</td></tr>
+        <tr><td>Cygnet</td><td>Gemma 4 12B</td><td>零訓練（凍結）</td><td class="num">87.9%</td></tr>
+        <tr><td>Drex 1.5</td><td>未公開</td><td>訓練</td><td class="num">86.2%</td></tr>
+        <tr><td>Winnow-12B Q8</td><td>Gemma 4 12B</td><td>LoRA 合併</td><td class="num">85.7%</td></tr>
+        <tr><td>Open-Jev-27B</td><td>Qwen 27B</td><td>LoRA + 決策頭</td><td class="num">85.3%</td></tr>
+        <tr><td>TypeLLM</td><td>Qwen 27B</td><td>零訓練</td><td class="num">84.4%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">各家自跑，不是官方排名。官方封閉題排行 v1.5.4 的第一名是 Cygnet（73.70），也就是凍結的 Gemma 4 12B，用的是跟 jevlike 同一派的讀法。這表示零訓練讀字母這條路，在別人的尺上也站得住。jevlike 尚未送官方評測。</p>
+</section>
+
+<section aria-labelledby="fail">
+  <p class="eyebrow">什麼時候會失靈</p>
+  <h2 id="fail">它讀得出文字裡的答案，讀不出文字外的未來</h2>
+  <ul class="fails">
+    <li class="hard"><strong>答案不在文字裡：選擇權快選器</strong><span>同一套方法拿去判斷「這張買權 20 天內會不會漲兩倍」，九月測試集 AUROC 0.475，跟擲硬幣一樣。同樣欄位的 LR 是 0.672。模型只是在複述規則，因為未來的價格不寫在任何欄位裡。</span></li>
+    <li><strong>判準模糊的題</strong><span>急迫度與 SPC 有兩成的題會因為選項順序不同而改答案。上線時選項順序要固定，校準也用同一個順序。</span></li>
+    <li><strong>只量過合成資料</strong><span>題目是 Claude 出的，真實產線資料預期低 5 到 15 點，門檻一定要用真實資料重新校準。</span></li>
+    <li><strong>刻意設計的語境</strong><span>外部研究顯示，反覆優化過的幾句話能翻掉 Jev 六成的決策，而且翻錯的題信心常常還很高。中性的一句話只翻 2.2%。吃外部文字的題要記得這點。</span></li>
+  </ul>
+</section>
+
+<section aria-labelledby="gloss">
+  <p class="eyebrow">名詞小抄</p>
+  <h2 id="gloss">看報告會遇到的詞</h2>
+  <dl class="gloss">
+    <dt>typed decision</dt><dd>把判斷寫成固定選項的題目，模型只回選項與機率，程式直接拿去用。</dd>
+    <dt>logprob</dt><dd>模型對「下一個字是某個 token」的對數機率。0 代表 100%，越負越不可能。</dd>
+    <dt>option mass</dt><dd>正規化之前，所有字母加起來的機率。接近 1 代表模型想回答字母；很低代表模板壞了。</dd>
+    <dt>溫度 T</dt><dd>把 logit 除以 T 再算機率。T 大於 1 會讓過度自信的分布變平，用標註資料擬出最合適的 T。</dd>
+    <dt>ECE</dt><dd>校準誤差。說 80% 把握的題，實際答對率離 80% 有多遠，平均起來。越小越好。</dd>
+    <dt>AUROC</dt><dd>信心能不能把對的排在錯的前面。1 是完美，0.5 是擲硬幣。</dd>
+    <dt>錯誤預算</dt><dd>先定可容忍的錯誤率，例如 5%，在校準資料上反推信心門檻，再到測試資料上驗證守不守得住。</dd>
+    <dt>LR</dt><dd class="lr">Logistic regression，邏輯斯迴歸。最基本的分類模型：每個欄位乘一個權重加起來，再壓成 0 到 1 的機率。幾秒就訓練完，不用 GPU，但只看得到你餵的欄位，不懂文字的意思。jevlike 拿它當「不用大模型的話能做到多少」的基線。產線題上它輸給零訓練的 Gemma；選擇權那次它反而贏，因為資訊全在數字欄位裡。</dd>
+    <dt>MoE</dt><dd>混合專家模型。每個 token 只走一部分參數，所以大模型也能跑得快。</dd>
+    <dt>&lt;bos&gt;</dt><dd>序列開頭的特殊 token。llama-server 會自動加，HF tokenizer 對 Gemma 4 不會，少了它平均掉 2 到 3 分。</dd>
+  </dl>
+</section>
+
+<section aria-labelledby="next">
+  <p class="eyebrow">下一步：第 12 輪，借 Gemma 4 新做法的四件事</p>
+  <h2 id="next">零訓練能借的，先借</h2>
+  <ol class="next">
+    <li><strong>順序型題目改讀機率加權等級。</strong>急迫度的錯集中在相鄰等級，Cygnet 就是這樣讀分數題的。用現有結果離線重算。</li>
+    <li><strong>溫度改成每種題型一個。</strong>新題上線沒有標註也能直接套用。同樣離線重算。</li>
+    <li><strong>階梯補 Gemma 4 12B 與 31B。</strong>官方第一名用 12B；31B 可以跟 Clef 27B 搶弱題候選。約 3 美元。</li>
+    <li><strong>低信心才先想再答。</strong>只在信心低於 0.7 時讓 26B 想 512 token 再讀字母。約 1 美元。</li>
+  </ol>
+  <p class="small muted">每一件都先寫好門檻，詳見交接文件 <code>docs/handoff-jevlike-v12.md</code>。</p>
+</section>
+
+<footer>
+  <p>資料來源：<a href="https://github.com/clarencechien/jevlike">clarencechien/jevlike</a> 的 README 與 <code>results/REPORT.md</code>、<code>05</code>、<code>06</code>、<code>09</code>、<code>11</code>、<code>13</code>、<code>15</code>、<code>16</code> 各分項報告；選擇權案例來自 <a href="https://github.com/clarencechien/optjev">clarencechien/optjev</a> 的 <code>results/01-retro.md</code>；外部數字來自 JevBench v1.5.4 與各專案的模型卡（2026-10-06 查）。所有產線數字都是合成資料。</p>
+</footer>
+</main>
