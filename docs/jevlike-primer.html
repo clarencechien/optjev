@@ -459,7 +459,7 @@ button, summary { transition: transform var(--dur-fast) var(--ease-out); }
 }
 </style>
 <style>
-/* REGISTER:  校準報告 — 把 jevlike 十一輪實驗壓成一份讀得完的說明，讀者是要決定用不用它、以及要自己校溫度的工程師與主管。
+/* REGISTER:  校準報告 — 把 jevlike 十六輪實驗壓成一份讀得完的說明，讀者是要決定用不用它、以及要自己校溫度的工程師與主管。
    REFERENCE: 1980 年代計量實驗室的儀器校正報告書 — 防偽底紋紙、校正前後對照表、量測點編號、一枚朱紅校正章。
    PAPER:     校正報告的防偽紙 — 極淡的藕紫底紋，hsl(262 22% 96%)；暗色是夜裡實驗室的同一張紙，深紫黑 hsl(262 16% 9%)。
    VOICE:     朱紅只給校正章、標題那個字與節號；窄體 Plex 標題配 Noto 內文；等寬字給量測值與 token。
@@ -525,10 +525,10 @@ button, summary { transition: transform var(--dur-fast) var(--ease-out); }
 <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">theme · auto</button>
 <main class="report">
 
-<p class="eyebrow">校正報告 · jevlike · Gemma 4 26B-A4B · 第 12 輪後 · 2026-10-06</p>
+<p class="eyebrow">校正報告 · jevlike · Gemma 4 26B-A4B · 第 16 輪後 · 2026-10-07</p>
 <h1 class="display">不寫一個字，<br>只讀<em>一個字母</em></h1>
 <p class="lede">jevlike 把產線的判斷題寫成選擇題，讓 Gemma 4 讀完現場狀況後，直接看它的下一個字想寫 A 還是 B。不生成文字、不解析 JSON，一次前向計算就拿到每個選項的機率。這份說明它為什麼準、信心要怎麼校、校對了怎麼驗，以及什麼時候會失靈。</p>
-<p class="byline">整理自 clarencechien/jevlike 十二輪實驗 · 產線數字全部來自合成資料 · 外部數字 2026-10-06 查</p>
+<p class="byline">整理自 clarencechien/jevlike 十六輪實驗 · 產線數字全部來自合成資料 · 外部數字 2026-10-07 查</p>
 
 <p class="eyebrow">01 · 量測結果</p>
 <h2>零訓練，十類裡七類九成八以上</h2>
@@ -536,7 +536,7 @@ button, summary { transition: transform var(--dur-fast) var(--ease-out); }
   <div class="stat"><p class="label">零標註達 98% 以上</p><div class="value">7 / 10</div><div class="delta">類產線判斷題</div></div>
   <div class="stat"><p class="label">JevBench 公開 231 題</p><div class="value">88.7%</div><div class="delta">自跑；hard 77.5%</div></div>
   <div class="stat"><p class="label">L4 單題 p50</p><div class="value">137 ms</div><div class="delta">同一現場第 2 題起 73 ms</div></div>
-  <div class="stat"><p class="label">十二輪實驗合計</p><div class="value">$30</div><div class="delta">約 17 GPU 小時</div></div>
+  <div class="stat"><p class="label">十六輪實驗合計</p><div class="value">$31.5</div><div class="delta">約 18.5 GPU 小時</div></div>
 </div>
 
 <p class="eyebrow">02 · 量測原理</p>
@@ -751,31 +751,11 @@ A. 不急　B. 盡快　C. 停線
 <ul>
   <li><strong>判準模糊的題。</strong>急迫度與 SPC 有兩成的題會因為選項順序不同而改答案。上線時順序要固定，校準也用同一個順序。</li>
   <li><strong>只量過合成資料。</strong>題目是 Claude 出的，真實產線資料預期低 5 到 15 點，門檻一定要用真實資料重新校準。</li>
+  <li><strong>要一起讀的題，不能拆開算。</strong>EmbeddingGemma 2 這類雙塔模型把訊息和選項各自變成向量再比相似度，兩邊從沒一起被讀過，只能比「像不像」。十類判斷題只有 63.7%，100 份 SOP 選一份 52.7%；它能做的是把 100 份縮到 20 份（95% 包含正解），選擇還是要讓 26B 讀（第 13 到 16 輪）。</li>
   <li><strong>刻意設計的語境。</strong>外部研究顯示，反覆優化過的幾句話能翻掉 Jev 六成的決策，而且翻錯的題信心常常還很高；中性的一句話只翻 2.2%。吃外部文字的題要記得這點。</li>
 </ul>
 
-<p class="eyebrow">08 · 名詞</p>
-<h2>看報告會遇到的詞</h2>
-<div class="table-scroll">
-<table>
-  <thead><tr><th>詞</th><th>意思</th></tr></thead>
-  <tbody>
-    <tr><td>typed decision<span class="sub">決策 API</span></td><td>把判斷寫成固定選項的題目，模型只回選項與機率，程式直接拿去用。</td></tr>
-    <tr><td>logit / logprob<span class="sub">分數 / 對數機率</span></td><td>模型對每個候選字的原始分數；softmax 之後取對數就是 logprob。0 代表 100%，越負越不可能。</td></tr>
-    <tr><td>option mass<span class="sub">字母總機率</span></td><td>正規化之前所有字母加起來的機率。接近 1 代表模型想回答字母；很低代表模板壞了。</td></tr>
-    <tr><td>溫度 T<span class="sub">校準溫度</span></td><td>把 logit 除以 T 再算機率。只改信心，不改選中的字母。每類題目用校準集擬一個。</td></tr>
-    <tr><td>NLL<span class="sub">負對數機率</span></td><td>正確答案拿到的機率取對數再加負號，平均起來。擬 T 時讓它最小。</td></tr>
-    <tr><td>ECE<span class="sub">校準誤差</span></td><td>說 80% 把握的題實際答對幾成，跟 80% 差多少，所有區間平均。越小越好。</td></tr>
-    <tr><td>AUROC</td><td>信心能不能把對的排在錯的前面。1 是完美，0.5 是擲硬幣。</td></tr>
-    <tr><td>錯誤預算<span class="sub">選擇性風險控制</span></td><td>先定可容忍的錯誤率，在校準集上反推信心門檻，再到測試集驗證守不守得住。</td></tr>
-    <tr><td>LR<span class="sub">邏輯斯迴歸</span></td><td>最基本的分類模型：每個欄位乘一個權重加起來，再壓成 0 到 1 的機率。幾秒訓練完、不用 GPU，但只看得到餵進去的欄位，不懂文字。jevlike 拿它當「不用大模型能做到多少」的基線：產線題它輸，選擇權那次它贏，因為資訊全在數字欄位裡。</td></tr>
-    <tr><td>MoE<span class="sub">混合專家</span></td><td>每個 token 只走一部分參數，所以大模型也能跑得快。</td></tr>
-    <tr><td>&lt;bos&gt;</td><td>序列開頭的特殊 token。llama-server 會自動加，HF tokenizer 對 Gemma 4 不會，少了平均掉 2 到 3 分。</td></tr>
-  </tbody>
-</table>
-</div>
-
-<p class="eyebrow">09 · 第 12 輪校正結果</p>
+<p class="eyebrow">08 · 第 12 輪校正結果</p>
 <h2>借來的四件都試過：<span class="nowrap">做法不變</span></h2>
 <p>Gemma 4 這條線上別人的新做法裡，不用訓練就能借的四件，第 12 輪都先寫好門檻再跑。結論是<span class="mark">四件都沒有好到值得換</span>，現在的 26B 加每類一個溫度仍是預設。</p>
 <div class="table-scroll">
@@ -794,7 +774,49 @@ A. 不急　B. 盡快　C. 停線
   <p class="head">下一步只剩 GB10 能回答的兩件</p>
   <p>一、31B 在 GB10 上的速度；二、只對 SPC、UPH 開「先想再答」。第二件是看了結果才發現的，要先重新寫門檻才能驗。急迫度不要開，它想完反而更偏向「停線」。</p>
 </div>
-<p class="byline">第 12 輪報告 jevlike results/17-v12.md、交接 docs/handoff-v12-borrowed-gemma.md · 資料來源：jevlike README、results/REPORT.md 與 05、06、09、11、13、15、16、17 分項報告；optjev results/01-retro.md；JevBench v1.5.4 與各專案模型卡。</p>
+<p class="eyebrow">09 · 第 13 到 16 輪校正結果</p>
+<h2>Google 自家的 embedding 路線：粗篩可以，<span class="nowrap">選擇不行</span></h2>
+<p>Google 的 Decision Maker 有一個標榜超低延遲的後端 EmbeddingGemma 2（300M 的雙塔模型）。四輪下來的結論：<span class="mark">它能把 100 份候選縮到 20 份，但選擇要交給 26B</span>；而且縮完再讓 26B 讀，也追不上讓 26B 從頭讀完全部。</p>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>輪</th><th>問的問題</th><th>結果</th></tr></thead>
+  <tbody>
+    <tr><td class="nowrap">13</td><td>十類判斷題它到什麼程度？</td><td>63.7%，小模型 E4B 都有 88.5%。答案相反的一對題，45% 給同一個答案。CPU 跑，免費。</td></tr>
+    <tr><td class="nowrap">14</td><td>給它主場：一則現場訊息該查 100 份 SOP 的哪一份？</td><td>自己選 52.7%；26B 分十組淘汰賽 94.7%、E4B 90.7%。但它排的前 20 名 95.3% 包含正解。</td></tr>
+    <tr><td class="nowrap">15</td><td>先縮到前 20／30／50 名，再讓 26B 讀 3 到 6 次？</td><td>89.3／90.0／89.3%，追不上 94.7%。名單越寬正解越常在裡面，但 26B 在一堆近親裡答對率也往下掉，兩邊抵銷。單則 0.7 秒對 2.7 秒。</td></tr>
+    <tr><td class="nowrap">16</td><td>把長得像的打散到不同組會不會變準？</td><td>不會：四種排法 87.3 到 89.3%；全部 100 份打散 92.7%。難的訊息怎麼排都會在某一輪碰到近親。</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="note">
+  <p class="head">題目有一半對它不公平，寫在結論旁邊</p>
+  <p>第 14 輪是零樣本、只看 SOP 說明、訊息刻意不用標題關鍵詞。embedding 模型實際部署是「新訊息比歷史訊息」，我們把它最依賴的東西拿掉了。另外 150 則測試題的解析度約 ±3 則，第 15、16 輪九種做法的差距都在這裡面，不要從裡面讀故事。要再做一輪，只做「每份 SOP 附兩則示範訊息」那一種。</p>
+</div>
+
+<p class="eyebrow">10 · 名詞</p>
+<h2>看報告會遇到的詞</h2>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>詞</th><th>意思</th></tr></thead>
+  <tbody>
+    <tr><td>typed decision<span class="sub">決策 API</span></td><td>把判斷寫成固定選項的題目，模型只回選項與機率，程式直接拿去用。</td></tr>
+    <tr><td>logit / logprob<span class="sub">分數 / 對數機率</span></td><td>模型對每個候選字的原始分數；softmax 之後取對數就是 logprob。0 代表 100%，越負越不可能。</td></tr>
+    <tr><td>option mass<span class="sub">字母總機率</span></td><td>正規化之前所有字母加起來的機率。接近 1 代表模型想回答字母；很低代表模板壞了。</td></tr>
+    <tr><td>溫度 T<span class="sub">校準溫度</span></td><td>把 logit 除以 T 再算機率。只改信心，不改選中的字母。每類題目用校準集擬一個。</td></tr>
+    <tr><td>NLL<span class="sub">負對數機率</span></td><td>正確答案拿到的機率取對數再加負號，平均起來。擬 T 時讓它最小。</td></tr>
+    <tr><td>ECE<span class="sub">校準誤差</span></td><td>說 80% 把握的題實際答對幾成，跟 80% 差多少，所有區間平均。越小越好。</td></tr>
+    <tr><td>AUROC</td><td>信心能不能把對的排在錯的前面。1 是完美，0.5 是擲硬幣。</td></tr>
+    <tr><td>錯誤預算<span class="sub">選擇性風險控制</span></td><td>先定可容忍的錯誤率，在校準集上反推信心門檻，再到測試集驗證守不守得住。</td></tr>
+    <tr><td>LR<span class="sub">邏輯斯迴歸</span></td><td>最基本的分類模型：每個欄位乘一個權重加起來，再壓成 0 到 1 的機率。幾秒訓練完、不用 GPU，但只看得到餵進去的欄位，不懂文字。jevlike 拿它當「不用大模型能做到多少」的基線：產線題它輸，選擇權那次它贏，因為資訊全在數字欄位裡。</td></tr>
+    <tr><td>MoE<span class="sub">混合專家</span></td><td>每個 token 只走一部分參數，所以大模型也能跑得快。</td></tr>
+    <tr><td>bi-encoder<span class="sub">雙塔</span></td><td>題目與選項各自變成向量，再算相似度；兩邊沒有一起被讀過。EmbeddingGemma 2 是這種。讀字母的做法是把題目和選項放在同一段文字裡一起讀。</td></tr>
+    <tr><td>召回<span class="sub">recall@K</span></td><td>正解有進前 K 名候選的比例。前置篩選漏掉的題，後面再準也救不回。</td></tr>
+    <tr><td>&lt;bos&gt;</td><td>序列開頭的特殊 token。llama-server 會自動加，HF tokenizer 對 Gemma 4 不會，少了平均掉 2 到 3 分。</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="byline">第 12 輪報告 jevlike results/17-v12.md、第 13 到 16 輪 results/18 到 21、交接 docs/handoff-v12 到 v16 · 資料來源：jevlike README、results/REPORT.md 與 05、06、09、11、13、15、16、17 到 21 分項報告；optjev results/01-retro.md；JevBench v1.5.4 與各專案模型卡。</p>
 
 </main>
 <script>
