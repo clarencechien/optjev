@@ -534,13 +534,13 @@ button, summary { transition: transform var(--dur-fast) var(--ease-out); }
 <h2>零訓練，十類裡七類九成八以上</h2>
 <div class="tiles wide stagger">
   <div class="stat"><p class="label">零標註達 98% 以上</p><div class="value">7 / 10</div><div class="delta">類產線判斷題</div></div>
-<div class="note critical">
-  <p class="head">先講一件新的：判斷用的 server 不要開 MTP</p>
-  <p>Gemma 4 新的「多 token 預測」草稿頭讓寫文章快 1.7 倍，但第 18 輪量到：開了之後，同一題重跑的字母機率會變（兩千題翻 7 題，單題最大差 0.93；不開的 server 自己重跑最大差只有 0.02）。信心會變的決策層不能用。寫文章、先想再答另開一個 server，判斷這個不開。細節在第 10 節。</p>
-</div>
   <div class="stat"><p class="label">JevBench 公開 231 題</p><div class="value">88.7%</div><div class="delta">自跑；hard 77.5%</div></div>
   <div class="stat"><p class="label">L4 單題 p50</p><div class="value">137 ms</div><div class="delta">同一現場第 2 題起 73 ms</div></div>
   <div class="stat"><p class="label">十八輪實驗合計</p><div class="value">$32.5</div><div class="delta">約 19.6 GPU 小時</div></div>
+</div>
+<div class="note critical">
+  <p class="head">先講一件新的：判斷用的 server 不要開 MTP</p>
+  <p>Gemma 4 新的「多 token 預測」草稿頭讓寫文章快 1.7 倍，但第 18 輪量到：開了之後，同一題重跑的字母機率會變（兩千題翻 7 題，單題最大差 0.93；不開的 server 自己重跑最大差只有 0.02）。信心會變的決策層不能用。寫文章、先想再答另開一個 server，判斷這個不開。細節在第 10 節。</p>
 </div>
 
 <p class="eyebrow">02 · 量測原理</p>
