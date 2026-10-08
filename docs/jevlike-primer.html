@@ -459,7 +459,7 @@ button, summary { transition: transform var(--dur-fast) var(--ease-out); }
 }
 </style>
 <style>
-/* REGISTER:  校準報告 — 把 jevlike 十六輪實驗壓成一份讀得完的說明，讀者是要決定用不用它、以及要自己校溫度的工程師與主管。
+/* REGISTER:  校準報告 — 把 jevlike 十八輪實驗壓成一份讀得完的說明，讀者是要決定用不用它、以及要自己校溫度的工程師與主管。
    REFERENCE: 1980 年代計量實驗室的儀器校正報告書 — 防偽底紋紙、校正前後對照表、量測點編號、一枚朱紅校正章。
    PAPER:     校正報告的防偽紙 — 極淡的藕紫底紋，hsl(262 22% 96%)；暗色是夜裡實驗室的同一張紙，深紫黑 hsl(262 16% 9%)。
    VOICE:     朱紅只給校正章、標題那個字與節號；窄體 Plex 標題配 Noto 內文；等寬字給量測值與 token。
@@ -525,18 +525,22 @@ button, summary { transition: transform var(--dur-fast) var(--ease-out); }
 <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">theme · auto</button>
 <main class="report">
 
-<p class="eyebrow">校正報告 · jevlike · Gemma 4 26B-A4B · 第 16 輪後 · 2026-10-07</p>
+<p class="eyebrow">校正報告 · jevlike · Gemma 4 26B-A4B · 第 18 輪後 · 2026-10-08</p>
 <h1 class="display">不寫一個字，<br>只讀<em>一個字母</em></h1>
 <p class="lede">jevlike 把產線的判斷題寫成選擇題，讓 Gemma 4 讀完現場狀況後，直接看它的下一個字想寫 A 還是 B。不生成文字、不解析 JSON，一次前向計算就拿到每個選項的機率。這份說明它為什麼準、信心要怎麼校、校對了怎麼驗，以及什麼時候會失靈。</p>
-<p class="byline">整理自 clarencechien/jevlike 十六輪實驗 · 產線數字全部來自合成資料 · 外部數字 2026-10-07 查</p>
+<p class="byline">整理自 clarencechien/jevlike 十八輪實驗（第 17 輪是提案） · 產線數字全部來自合成資料 · 外部數字 2026-10-08 查</p>
 
 <p class="eyebrow">01 · 量測結果</p>
 <h2>零訓練，十類裡七類九成八以上</h2>
 <div class="tiles wide stagger">
   <div class="stat"><p class="label">零標註達 98% 以上</p><div class="value">7 / 10</div><div class="delta">類產線判斷題</div></div>
+<div class="note critical">
+  <p class="head">先講一件新的：判斷用的 server 不要開 MTP</p>
+  <p>Gemma 4 新的「多 token 預測」草稿頭讓寫文章快 1.7 倍，但第 18 輪量到：開了之後，同一題重跑的字母機率會變（兩千題翻 7 題，單題最大差 0.93；不開的 server 自己重跑最大差只有 0.02）。信心會變的決策層不能用。寫文章、先想再答另開一個 server，判斷這個不開。細節在第 10 節。</p>
+</div>
   <div class="stat"><p class="label">JevBench 公開 231 題</p><div class="value">88.7%</div><div class="delta">自跑；hard 77.5%</div></div>
   <div class="stat"><p class="label">L4 單題 p50</p><div class="value">137 ms</div><div class="delta">同一現場第 2 題起 73 ms</div></div>
-  <div class="stat"><p class="label">十六輪實驗合計</p><div class="value">$31.5</div><div class="delta">約 18.5 GPU 小時</div></div>
+  <div class="stat"><p class="label">十八輪實驗合計</p><div class="value">$32.5</div><div class="delta">約 19.6 GPU 小時</div></div>
 </div>
 
 <p class="eyebrow">02 · 量測原理</p>
@@ -793,7 +797,25 @@ A. 不急　B. 盡快　C. 停線
   <p>第 14 輪是零樣本、只看 SOP 說明、訊息刻意不用標題關鍵詞。embedding 模型實際部署是「新訊息比歷史訊息」，我們把它最依賴的東西拿掉了。另外 150 則測試題的解析度約 ±3 則，第 15、16 輪九種做法的差距都在這裡面，不要從裡面讀故事。要再做一輪，只做「每份 SOP 附兩則示範訊息」那一種。</p>
 </div>
 
-<p class="eyebrow">10 · 名詞</p>
+<p class="eyebrow">10 · 第 18 輪校正結果</p>
+<h2>MTP 草稿頭：生成開，<span class="nowrap">判斷不開</span></h2>
+<p>MTP 是在主模型旁邊掛一個小草稿頭，先猜後面幾個 token，主模型一次驗證。寫文章變快是真的；判斷每題只讀第一個字母，照理不受影響。同一張 L4、同一份模型、同一組設定，開關各跑一次：</p>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>項目</th><th>不開</th><th>開</th></tr></thead>
+  <tbody>
+    <tr><td>背景生成速度</td><td>每秒 28 個 token</td><td>每秒 49 個（1.7 倍；草稿接受率 58%）</td></tr>
+    <tr><td>先想再答的生成時間</td><td>1</td><td>0.73 倍</td></tr>
+    <tr><td>一次判斷</td><td>136 ms</td><td>135 ms</td></tr>
+    <tr><td>判斷的答案（D0 兩千題逐題比）</td><td>—</td><td>翻 7 題；單題機率最大差 0.93</td></tr>
+    <tr><td>同一題重跑，各自的 server 自己比</td><td>最大差 0.02、0 題翻</td><td><strong>最大差 0.84、2 題翻</strong></td></tr>
+    <tr><td>機台同時在寫報告時，判斷被拖慢</td><td>1.33 倍</td><td>1.60 倍</td></tr>
+  </tbody>
+</table>
+</div>
+<p>關鍵是倒數第二列：不是 MTP 把機率移到另一個固定的位置，而是<span class="mark">開了草稿頭之後，第一個字母的機率本身每次跑都會變</span>。平均差只有 0.004，錯誤預算檢查也沒抓到，但第 4 節整套溫度與門檻的前提是「同一題重跑拿到同一個信心」。所以判斷用的 server 不開；寫報告、先想再答的 server 另開一個，兩者不共用。原因還沒查。</p>
+
+<p class="eyebrow">11 · 名詞</p>
 <h2>看報告會遇到的詞</h2>
 <div class="table-scroll">
 <table>
@@ -811,12 +833,13 @@ A. 不急　B. 盡快　C. 停線
     <tr><td>MoE<span class="sub">混合專家</span></td><td>每個 token 只走一部分參數，所以大模型也能跑得快。</td></tr>
     <tr><td>bi-encoder<span class="sub">雙塔</span></td><td>題目與選項各自變成向量，再算相似度；兩邊沒有一起被讀過。EmbeddingGemma 2 是這種。讀字母的做法是把題目和選項放在同一段文字裡一起讀。</td></tr>
     <tr><td>召回<span class="sub">recall@K</span></td><td>正解有進前 K 名候選的比例。前置篩選漏掉的題，後面再準也救不回。</td></tr>
+    <tr><td>MTP<span class="sub">多 token 預測</span></td><td>主模型旁掛一個小草稿頭先猜後面幾個 token，主模型一次驗證。寫文章變快；讀第一個字母沒有好處，還會讓機率不穩（第 18 輪）。</td></tr>
     <tr><td>&lt;bos&gt;</td><td>序列開頭的特殊 token。llama-server 會自動加，HF tokenizer 對 Gemma 4 不會，少了平均掉 2 到 3 分。</td></tr>
   </tbody>
 </table>
 </div>
 
-<p class="byline">第 12 輪報告 jevlike results/17-v12.md、第 13 到 16 輪 results/18 到 21、交接 docs/handoff-v12 到 v16 · 資料來源：jevlike README、results/REPORT.md 與 05、06、09、11、13、15、16、17 到 21 分項報告；optjev results/01-retro.md；JevBench v1.5.4 與各專案模型卡。</p>
+<p class="byline">第 12 輪報告 jevlike results/17-v12.md、第 13 到 18 輪 results/18 到 22、交接 docs/handoff-v12 到 v18 · 資料來源：jevlike README、results/REPORT.md 與 05、06、09、11、13、15、16、17 到 22 分項報告；optjev results/01-retro.md；JevBench v1.5.4 與各專案模型卡。</p>
 
 </main>
 <script>
