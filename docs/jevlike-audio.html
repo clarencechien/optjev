@@ -512,7 +512,7 @@ body { background: var(--paper); color: var(--ink); }
 
 <p class="eyebrow">番外篇 · jevlike 第 21 輪 · Breeze 聽、Gemma 4 E4B 判 · 2026-10-15</p>
 <h1 class="display">讓模型聽，<br>不等於讓它<em>聽出錯</em></h1>
-<p class="lede">我們想讓 AI 幫語音辨識挑錯字。結果：用讀稿的方式挑不出來，辨識器自己的「不確定」反而更準，讓 AI 連聲音一起聽更糟。這頁先用白話講結論，再講值不值得、還能試什麼，最後才是實驗細節。</p>
+<p class="lede">我們想讓 AI 幫語音辨識挑錯字。結果：用讀稿的方式挑不出來，辨識器自己的「不確定」反而更準，讓 AI 連聲音一起聽更糟。後來把題目改成「這幾個英文字，哪一個聽錯了」，AI 就會了：大的那顆九成挑得中。這頁先用白話講結論，再講值不值得、還能試什麼，最後才是實驗細節。</p>
 <p class="byline">語料與正解來自 clarencechien/kikemu exp5（公開 podcast） · 在 Modal L4 上跑，約 $1.3 · 數字出自 jevlike results/25-asr-error-gate.md</p>
 
 <p class="eyebrow">先講結論</p>
@@ -536,25 +536,25 @@ body { background: var(--paper); color: var(--ink); }
 </div>
 <div class="note">
   <p class="head">所以怎麼做</p>
-  <p>辨識完之後，把握度低的段落交給人看，其他放行。不加 AI 讀稿這一道。這一步在 L4 上免費，在 GB10 上也免費。</p>
+  <p>辨識完之後，把握度低的段落交給人看，其他放行。這一步免費。要再加 AI 的話，不要問它「這段有沒有錯」，把這段的英文字列出來問「哪一個聽錯了」：第二輪量到小模型（E4B）從 0.71 升到 0.77，大模型（26B）十次有九次指對那個字。人看到的不再是「這段可疑」，而是「bin 這個字可疑」。</p>
 </div>
 
 <p class="eyebrow">值不值得</p>
 <h2>這個形狀不值得，但題目還沒出完</h2>
 <p>「讀辨識稿判斷這段有沒有錯」這個形狀，jevlike 不值得做：讀文字沒贏過免費訊號，26B 多 5 點但每段多 0.3 秒乘題數，抓到八成的錯要標一半的段落，人工複核量沒省到。這個形狀收線。</p>
-<p>但沒試的不是更大的模型，是不同的輸入。jevlike 擅長「在擺出來的選項裡挑」，這一輪給它的卻是「在整段裡找」。還有四件便宜的事沒做，每件幾塊美金：</p>
+<p>但沒試的不是更大的模型，是不同的輸入。jevlike 擅長「在擺出來的選項裡挑」，第一輪給它的卻是「在整段裡找」。四件便宜的事，每件幾塊美金，前兩件已經跑了：</p>
 <div class="table-scroll">
 <table>
   <thead><tr><th>還能試</th><th>為什麼可能有用</th><th>要先有</th></tr></thead>
   <tbody>
-    <tr><td class="nowrap">1 · 給它詞表再問</td><td>產線或會議本來就有專有名詞清單。問「這段有沒有詞表裡的詞被聽成別的」，補上這一輪缺的先驗。真實部署會有這個條件，這一輪故意沒給。</td><td>詞表</td></tr>
-    <tr><td class="nowrap">2 · 只問可疑的那一段，圈出可疑的詞</td><td>先用辨識器的把握度挑出低信心的段落，再把低信心的詞標出來問「這個詞對不對」。從大海撈針變成驗證一個嫌疑，是 jevlike 的題型；跟第 12 輪「低信心才思考」是同一個級聯。</td><td>把握度（已有）</td></tr>
+    <tr><td class="nowrap">1 · 給它詞表再問</td><td><span class="take ng">跑了</span> 詞表對小模型有害（0.71 → 0.64），對大模型小補（0.78 → 0.81）；不精確的詞表沒有比精確的差。模型不是在查表，是被語境提醒。</td><td>詞表</td></tr>
+    <tr><td class="nowrap">2 · 把英文字列成選項，問哪一個錯</td><td><span class="take ok">跑了</span> 從「找」變成「挑」：小模型 0.71 → 0.77，加上辨識器的把握度 0.80；大模型指對錯字的比例 0.90。缺點：選項一多，「都對」這個選項幾乎不會被選，要按選項數校準。只問把握度最低的四成段落反而比全問差。</td><td>無</td></tr>
     <tr><td class="nowrap">3 · 兩套辨識器的稿並排，讓它選</td><td>兩套的分歧在中文錯字上已經有 0.78；在分歧點挑哪個對是純粹的選擇題。這就是 kikemu 那 36 處分歧的實驗。</td><td>有人先聽過那 36 段寫正解</td></tr>
     <tr><td class="nowrap">4 · 改錯而不是找錯</td><td>把辨識器的前幾名候選擺出來讓它選。</td><td>辨識器吐候選</td></tr>
   </tbody>
 </table>
 </div>
-<p>兩個前提：中文錯字的正解現在有三成雜訊，上面任何一件要判，都得先有人校對過的正解；這條線值不值得再花半天，看會議記錄那條產品線需不需要。建議：把握度閘門先上線，1 和 2 合成一輪，有校對過的正解再跑。</p>
+<p>1 和 2 已經跑完（第 22 輪，約 $0.35）：英文錯的正解乾淨，不用校對就能判。中文錯字那半還是要人校對過的正解；代理正解（兩路 Gemini 一致才算）試過，數字沒變，所以結論不是正解雜訊造成的。3 和 4 看會議記錄那條產品線需不需要再做。</p>
 
 <p class="eyebrow">以下是實驗細節</p>
 <h2>怎麼問、怎麼改題、量到什麼、哪些預測錯了</h2>
@@ -733,7 +733,7 @@ body { background: var(--paper); color: var(--ink); }
 </table>
 </div>
 
-<p class="byline">jevlike docs/handoff-v21-asr-error-gate.md（跑前寫死的門檻與預測）、results/25-asr-error-gate.md、results/v21.json、data/v21/ · kikemu exp5 commit 1a9cea4 · llama.cpp PR #21421（Gemma 4 音訊）</p>
+<p class="byline">jevlike docs/handoff-v21-asr-error-gate.md 與 handoff-v22-glossary-words.md（跑前寫死的門檻與預測）、results/25-asr-error-gate.md、results/26-glossary-words.md、v21.json、v22.json、data/v21/ · kikemu exp5 commit 1a9cea4 · llama.cpp PR #21421（Gemma 4 音訊）</p>
 
 </main>
 <script>
