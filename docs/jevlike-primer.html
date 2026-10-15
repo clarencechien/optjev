@@ -459,7 +459,7 @@ button, summary { transition: transform var(--dur-fast) var(--ease-out); }
 }
 </style>
 <style>
-/* REGISTER:  校準報告 — 把 jevlike 十九輪實驗壓成一份讀得完的說明，讀者是要決定用不用它、以及要自己校溫度的工程師與主管。
+/* REGISTER:  校準報告 — 把 jevlike 二十輪實驗壓成一份讀得完的說明，讀者是要決定用不用它、以及要自己校溫度的工程師與主管。
    REFERENCE: 1980 年代計量實驗室的儀器校正報告書 — 防偽底紋紙、校正前後對照表、量測點編號、一枚朱紅校正章。
    PAPER:     校正報告的防偽紙 — 極淡的藕紫底紋，hsl(262 22% 96%)；暗色是夜裡實驗室的同一張紙，深紫黑 hsl(262 16% 9%)。
    VOICE:     朱紅只給校正章、標題那個字與節號；窄體 Plex 標題配 Noto 內文；等寬字給量測值與 token。
@@ -525,10 +525,10 @@ button, summary { transition: transform var(--dur-fast) var(--ease-out); }
 <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">theme · auto</button>
 <main class="report">
 
-<p class="eyebrow">校正報告 · jevlike · Gemma 4 26B-A4B · 第 19 輪後 · 2026-10-13</p>
+<p class="eyebrow">校正報告 · jevlike · Gemma 4 26B-A4B · 第 20 輪後 · 2026-10-15</p>
 <h1 class="display">不寫一個字，<br>只讀<em>一個字母</em></h1>
 <p class="lede">jevlike 把產線的判斷題寫成選擇題，讓 Gemma 4 讀完現場狀況後，直接看它的下一個字想寫 A 還是 B。不生成文字、不解析 JSON，一次前向計算就拿到每個選項的機率。這份說明它為什麼準、信心要怎麼校、校對了怎麼驗，以及什麼時候會失靈。</p>
-<p class="byline">整理自 clarencechien/jevlike 十九輪實驗（第 17 輪是提案） · 產線數字全部來自合成資料 · 外部數字 2026-10-13 查</p>
+<p class="byline">整理自 clarencechien/jevlike 二十輪實驗（第 17 輪是提案） · 產線數字全部來自合成資料 · 外部數字 2026-10-15 查</p>
 
 <p class="eyebrow">01 · 量測結果</p>
 <h2>零訓練，十類裡七類九成八以上</h2>
@@ -536,7 +536,7 @@ button, summary { transition: transform var(--dur-fast) var(--ease-out); }
   <div class="stat"><p class="label">零標註達 98% 以上</p><div class="value">7 / 10</div><div class="delta">類產線判斷題</div></div>
   <div class="stat"><p class="label">JevBench 公開 231 題</p><div class="value">88.7%</div><div class="delta">自跑；hard 77.5%</div></div>
   <div class="stat"><p class="label">L4 單題 p50</p><div class="value">137 ms</div><div class="delta">同一現場第 2 題起 73 ms</div></div>
-  <div class="stat"><p class="label">十九輪實驗合計</p><div class="value">$33</div><div class="delta">約 20.3 GPU 小時</div></div>
+  <div class="stat"><p class="label">二十輪實驗合計</p><div class="value">$34</div><div class="delta">約 21.7 GPU 小時</div></div>
 </div>
 <div class="note critical">
   <p class="head">先講一件新的：判斷用的 server 不要開 MTP</p>
@@ -834,7 +834,28 @@ A. 不急　B. 盡快　C. 停線
   <p>題目只寫肯定形；每一道判斷獨立讀，不用一題的機率去推另一題。第 4 節的溫度與門檻仍然成立，因為它們只在同一題的選項之間比較。</p>
 </div>
 
-<p class="eyebrow">12 · 名詞</p>
+<p class="eyebrow">12 · 第 20 輪校正結果</p>
+<h2>四個引擎、同一批題、同一張卡：<span class="nowrap">差多少</span></h2>
+<p>讓模型寫答案（LLM call）、讀字母（jevlike 26B 與 E4B）、Google 的 EmbeddingGemma 2，各答同樣的 500 題，在同一張 L4 上計時。每筆毫秒：</p>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>引擎</th><th>單筆</th><th>批次 100 筆</th><th>同一份狀況再問一題</th><th>產線四類題準確率</th></tr></thead>
+  <tbody>
+    <tr><td>LLM call（26B 寫 JSON）</td><td>391–425</td><td>209–272</td><td>355–403</td><td>0.95–0.99</td></tr>
+    <tr><td>jevlike 26B</td><td>131–172</td><td>124–190</td><td>97–154</td><td>0.98–1.00</td></tr>
+    <tr><td>jevlike E4B</td><td>71–101</td><td>70–111</td><td>49–83</td><td>0.92–1.00</td></tr>
+    <tr><td>EmbeddingGemma 2（L4）</td><td>70–73</td><td><strong>2–3</strong></td><td>≈ 0</td><td><strong>0.65–0.84</strong></td></tr>
+    <tr><td>EmbeddingGemma 2（4 顆 CPU）</td><td>79–117</td><td>37–65</td><td>≈ 0</td><td>同上</td></tr>
+  </tbody>
+</table>
+</div>
+<p>EmbeddingGemma 批次便宜是真的：每百萬筆 L4 費用 0.5 美元，E4B 20 美元，LLM call 51 美元。但準確率在產線四類題上差 10 到 27 個百分點，只有 eg2poc 的「專案狀態四類」這種粗分題跟 E4B 打平（0.70 對 0.72），那是這輪唯一該交給它的題型。</p>
+<div class="note">
+  <p class="head">兩個量測教訓</p>
+  <p>一、llama-server 會把剛送過的 prompt 從快取整段重播，第一次量到的批次數字因此快了四倍，是假的；量批次要冷跑。二、llama-server 在 L4 上開 4 個 slot 並行不加吞吐，批次等於單筆乘以筆數；要批次得換 SGLang（第 4 輪量過快 3.7 到 6 倍）。另外，同一份狀況再問一題只省 10 到 30%，因為這批狀況只有 100 個 token；「第二題起 73 ms」是 1,100 token 的狀況才有。</p>
+</div>
+
+<p class="eyebrow">13 · 名詞</p>
 <h2>看報告會遇到的詞</h2>
 <div class="table-scroll">
 <table>
@@ -858,7 +879,7 @@ A. 不急　B. 盡快　C. 停線
 </table>
 </div>
 
-<p class="byline">第 12 輪報告 jevlike results/17-v12.md、第 13 到 19 輪 results/18 到 23、交接 docs/handoff-v12 到 v19 · 資料來源：jevlike README、results/REPORT.md 與 05、06、09、11、13、15、16、17 到 23 分項報告；optjev results/01-retro.md；JevBench v1.5.4 與各專案模型卡。</p>
+<p class="byline">第 12 輪報告 jevlike results/17-v12.md、第 13 到 20 輪 results/18 到 24、交接 docs/handoff-v12 到 v20 · 資料來源：jevlike README、results/REPORT.md 與 05、06、09、11、13、15、16、17 到 24 分項報告；optjev results/01-retro.md；JevBench v1.5.4 與各專案模型卡。</p>
 
 </main>
 <script>
