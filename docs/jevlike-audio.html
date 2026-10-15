@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="imitator-style" content="v3">
+<meta name="imitator-register" content="番外篇工作日誌 — 一條旁支實驗從問題、改題、量測到收線的完整紀錄，含失敗的預測">
+<meta name="imitator-reference" content="錄音室的 session log — 磁帶盒上的手寫標籤、逐軌紀錄表、紅筆圈出來的 NG take">
+<meta name="imitator-paper" content="hsl(200 18% 96%)">
+<meta name="imitator-accent" content="hsl(38 82% 36%)">
+<title>jevlike 音訊番外篇</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* imitator report chassis — v3
+ *
+ * Source: https://github.com/clarencechien/imitator/blob/main/style/report.css
+ * How to use it: https://github.com/clarencechien/imitator/blob/main/style/STYLE.md
+ *
+ * This is NOT a house style. A report here is an essay with a point of view —
+ * it should look like someone made it, not like it came off a line. So this
+ * file fixes only what every report must get right no matter its voice:
+ * readability, structure, responsiveness, dark mode, motion hygiene, print.
+ *
+ * Everything that carries voice — paper and ink colours, the accent, which
+ * typefaces do which job, how big the headline is, how sections are signposted
+ * — is yours to choose per report. The tokens in §1 are the seams: override
+ * them in a <style> block AFTER this one and the whole chassis follows.
+ *
+ * Paste this file verbatim. Do not link it at runtime.
+ */
+
+/* ── §1 Tokens ───────────────────────────────────────────────────────────
+ *
+ * Override any of these per report. The defaults are a plain warm neutral —
+ * deliberately unremarkable, so a report that overrides nothing is readable
+ * but obviously unfinished. Redefine BOTH modes: dark is chosen, never an
+ * automatic flip.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* --- voice: expect to override every one of these --- */
+  --paper: #fbfbfa;        /* page */
+  --card: #ffffff;         /* raised surface */
+  --ink: #1a1a19;          /* primary text */
+  --ink-2: #4a4a46;        /* secondary text */
+  --mist: #6b6b68;         /* labels, captions, axis ticks */
+  --rule: #e6e6e3;         /* hairlines */
+  --rule-hard: #d3d3ce;    /* the one heavy rule per section */
+  --accent: #b0552b;       /* links, the coloured word, section numbers */
+  --accent-soft: #efe7df;  /* accent at wash strength — chips, marks */
+
+  /* --- faces: four jobs. Give them real families; --disp and --serif may be
+         the same as --sans if the report's voice is plain. --- */
+  --sans:  ui-sans-serif, system-ui, -apple-system, "Noto Sans TC",
+           "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --serif: "Noto Serif TC", "Songti TC", "PMingLiU", Georgia, serif;
+  --disp:  var(--sans);    /* headlines */
+  --mono:  ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* --- type scale ---
+     Body is deliberately large: this is long-form prose in Chinese, read on a
+     phone as often as a laptop. 17px is the floor, not the target. */
+  --fs-body: clamp(1.0625rem, 1.01rem + .28vw, 1.1875rem);   /* 17 → 19 */
+  --fs-sm:   clamp(.875rem, .85rem + .12vw, .9375rem);       /* 14 → 15 */
+  --fs-xs:   .8125rem;                                        /* 13 — labels only */
+  --lh-body: 1.85;         /* CJK needs more leading than Latin */
+
+  --fs-display: clamp(2.6rem, 1.4rem + 5.4vw, 5.25rem);      /* the one big headline */
+  --fs-1: clamp(1.85rem, 1.45rem + 1.9vw, 2.75rem);
+  --fs-2: clamp(1.4rem, 1.24rem + .78vw, 1.85rem);
+  --fs-3: clamp(1.14rem, 1.08rem + .3vw, 1.32rem);
+
+  /* --- spacing --- */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1.15rem;
+  --sp-5: 1.75rem; --sp-6: 2.75rem; --sp-7: 4.5rem;
+
+  --radius: 10px;
+  --measure: 34em;         /* prose column ≈ 34 CJK characters */
+  --page: 46rem;           /* text column */
+  --page-wide: 66rem;      /* wide devices: tables, figures, tile rows */
+
+  /* How far a wide device spills into the gutter on each side. Bounded by the
+     gutter that actually exists, so it can never push the page sideways. */
+  --bleed: min((var(--page-wide) - var(--page)) / 2, max(0px, (100vw - var(--page)) / 2));
+
+  /* --- motion ---
+     Strong curves only. The built-in CSS easings are too weak to read as
+     intentional, and ease-in on anything a reader is watching feels sluggish. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --dur-fast: 160ms;
+  --dur: 240ms;
+  --dur-slow: 420ms;       /* entrances only — never a UI response */
+}
+
+/* Dark is a second set of choices, not an inversion. Declared under both
+   scopes so an in-page toggle wins either way. A report that overrides the
+   light tokens MUST override these too. */
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --paper: #191917; --card: #222220;
+    --ink: #eeeeec; --ink-2: #b8b8b3; --mist: #9a9a95;
+    --rule: #333331; --rule-hard: #454542;
+    --accent: #e08a5c; --accent-soft: #3a2f28;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #191917; --card: #222220;
+  --ink: #eeeeec; --ink-2: #b8b8b3; --mist: #9a9a95;
+  --rule: #333331; --rule-hard: #454542;
+  --accent: #e08a5c; --accent-soft: #3a2f28;
+}
+
+/* Chart series colours are NOT part of the voice. They are the one palette a
+   report must not re-pick: the order is what keeps adjacent series apart under
+   colour blindness, and it was validated with a tool rather than an eye. Use
+   them in order, never cycle past --c6. */
+:root {
+  --c1: #2a78d6; --c2: #eb6834; --c3: #1baf7a;
+  --c4: #eda100; --c5: #e87ba4; --c6: #008300;
+  --good: #0ca30c; --warn: #fab219; --critical: #d03b3b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --c1: #3987e5; --c2: #d95926; --c3: #199e70;
+    --c4: #c98500; --c5: #d55181; --c6: #008300;
+  }
+}
+:root[data-theme="dark"] {
+  --c1: #3987e5; --c2: #d95926; --c3: #199e70;
+  --c4: #c98500; --c5: #d55181; --c6: #008300;
+}
+
+/* ── §2 Base & readability ───────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: var(--fs-body)/var(--lh-body) var(--sans);
+  overflow-wrap: break-word;
+  line-break: strict;
+  -webkit-text-size-adjust: 100%;
+  /* Progressive: tightens CJK punctuation where the browser supports it. */
+  text-spacing-trim: trim-start;
+}
+
+p { text-wrap: pretty; }
+h1, h2, h3, h4, .display { text-wrap: balance; }
+
+img, svg, video, canvas { max-width: 100%; height: auto; }
+a { color: var(--accent); text-underline-offset: .2em; text-decoration-thickness: from-font; }
+a:focus-visible, button:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px;
+}
+::selection { background: var(--accent-soft); }
+
+/* ── §3 Layout ───────────────────────────────────────────────────────────── */
+
+.report {
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: clamp(2rem, 1.2rem + 3.5vw, 5rem) clamp(1.15rem, .7rem + 2.4vw, 2.5rem) 6rem;
+}
+.report > * { max-width: var(--measure); }
+/* Figures, tables and full-width devices opt out of the prose measure. A
+   <section> or <article> is a pass-through: it must not inherit the measure,
+   or every table inside it is trapped at 34em — so the prose cap is re-applied
+   to its children instead. */
+.report :is(figure, .table-scroll, .wide, hr, .tiles, .cols, .banner) { max-width: none; }
+.report > :is(section, article) { max-width: none; }
+.report > :is(section, article) > * { max-width: var(--measure); }
+.report > :is(section, article) > :is(figure, .table-scroll, .wide, hr, .tiles, .cols, .banner) { max-width: none; }
+/* Grid items get min-width: 0 so one unbreakable string cannot widen the track.
+   Any grid you write yourself needs the same — see STYLE.md. */
+.cols > *, .tiles > * { min-width: 0; }
+.cols  { display: grid; gap: var(--sp-5); grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); }
+.tiles { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); margin-block: var(--sp-5); }
+.card  { background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: var(--sp-5); }
+
+/* The text column stays narrow; the wide devices breathe out into the gutter.
+   Tables get this by default — a table trapped at the prose measure is the
+   single most common way a report becomes unusable on a desktop. .wide opts
+   anything else in (a tile row, a chart, a figure).
+
+   It widens by whatever gutter actually exists and no more, so it can never
+   push the page sideways — which the obvious `width + 50% margin` breakout
+   does the moment its percentage resolves against the wrong box.
+   Declared last on purpose: any component using the `margin` shorthand would
+   otherwise zero out the inline margins this depends on. */
+.wide, .table-scroll { margin-inline: calc(-1 * var(--bleed)); }
+
+/* ── §4 Structure & editorial devices ────────────────────────────────────── */
+
+/* The headline. .display is the one oversized thing in the document; a
+   coloured <em> inside it is the report's signature — use it once. */
+.display {
+  font-family: var(--disp);
+  font-size: var(--fs-display);
+  line-height: 1.04;
+  letter-spacing: -.025em;
+  font-weight: 700;
+  margin: 0 0 var(--sp-4);
+}
+.display em { font-style: normal; color: var(--accent); }
+
+h1, h2, h3 { font-family: var(--disp); line-height: 1.25; letter-spacing: -.012em; margin: 0; font-weight: 680; }
+h1 { font-size: var(--fs-1); }
+h2 { font-size: var(--fs-2); margin: var(--sp-7) 0 var(--sp-4); }
+h3 { font-size: var(--fs-3); margin: var(--sp-5) 0 var(--sp-2); }
+h2 + h3 { margin-top: var(--sp-4); }
+p, ul, ol { margin: 0 0 var(--sp-4); }
+li + li { margin-top: var(--sp-2); }
+
+/* The signpost. Mono, letterspaced, small — it gives a document a spine:
+   序幕 · PROLOGUE / 01 · VOCABULARY / 第一幕 · 1973 */
+.eyebrow {
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: flex; align-items: center; gap: var(--sp-3);
+  margin: var(--sp-7) 0 var(--sp-2);
+}
+.eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+.eyebrow + h2 { margin-top: 0; }
+
+.lede { font-size: 1.15em; line-height: 1.7; color: var(--ink-2); }
+.byline { font-family: var(--mono); font-size: var(--fs-xs); letter-spacing: .06em; color: var(--mist); }
+
+/* A sentence worth stopping on. Not a highlighter pen on a whole paragraph. */
+.mark { background: var(--accent-soft); box-shadow: 0 0 0 .18em var(--accent-soft); border-radius: 2px; }
+
+/* An inverted label that interrupts the column: 接回 VOL.1 */
+.chip {
+  display: inline-block; background: var(--ink); color: var(--paper);
+  font-family: var(--mono); font-size: var(--fs-xs); letter-spacing: .08em;
+  padding: .2em .55em; border-radius: 3px; vertical-align: .08em;
+}
+.chip.soft { background: var(--accent-soft); color: var(--ink-2); }
+
+/* A line pulled out of the argument, set large. Never a repeat of the lede. */
+.pull {
+  font-family: var(--serif);
+  font-size: clamp(1.35rem, 1.1rem + 1.2vw, 1.9rem);
+  line-height: 1.5; color: var(--ink);
+  border-left: 3px solid var(--accent);
+  padding: var(--sp-2) 0 var(--sp-2) var(--sp-5);
+  margin-block: var(--sp-6);
+}
+
+blockquote { margin-block: var(--sp-5); padding-left: var(--sp-5); border-left: 2px solid var(--rule-hard); color: var(--ink-2); }
+.note { border: 1px solid var(--rule); border-left: 3px solid var(--accent); border-radius: var(--radius); background: var(--card); padding: var(--sp-5); margin-block: var(--sp-6); }
+.note > :last-child { margin-bottom: 0; }
+.note .head { font-weight: 680; margin-bottom: var(--sp-2); }
+.note.good { border-left-color: var(--good); }
+.note.warn { border-left-color: var(--warn); }
+.note.critical { border-left-color: var(--critical); }
+
+code, kbd, samp { font-family: var(--mono); font-size: .88em; }
+/* A URL or a scope string inside <code> has no break opportunity, so it becomes
+   the min-content width of everything containing it. Inside a grid track — whose
+   default min-width is auto, i.e. min-content — that one string widens the track
+   past the viewport and the whole page scrolls sideways. Breaking it here fixes
+   the cause; see also the note on custom grids in STYLE.md. */
+:not(pre) > code {
+  background: var(--accent-soft); padding: .12em .4em; border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+pre {
+  background: var(--card); border: 1px solid var(--rule);
+  border-top: 3px solid var(--accent); border-radius: var(--radius);
+  padding: var(--sp-5); overflow-x: auto;
+  font-size: var(--fs-sm); line-height: 1.7;
+}
+hr { border: 0; border-top: 1px solid var(--rule); margin-block: var(--sp-7); }
+
+/* ── §5 Figures, charts, tables ──────────────────────────────────────────── */
+
+.stat { background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: var(--sp-3) var(--sp-4); }
+.stat .label { font-size: var(--fs-xs); color: var(--mist); margin: 0 0 var(--sp-1); }
+.stat .value { font-family: var(--disp); font-size: 1.75rem; font-weight: 680; line-height: 1.15; letter-spacing: -.02em; }
+.stat .delta { font-size: var(--fs-xs); color: var(--ink-2); margin-top: var(--sp-1); display: flex; align-items: center; gap: .3em; }
+.delta.up::before   { content: "▲"; font-size: .8em; color: var(--good); }
+.delta.down::before { content: "▼"; font-size: .8em; color: var(--critical); }
+
+/* At most one per report. */
+.hero { font-family: var(--disp); font-size: clamp(3rem, 2rem + 4vw, 5rem); font-weight: 700; line-height: 1; letter-spacing: -.03em; margin: var(--sp-2) 0; }
+
+figure { margin-block: var(--sp-6); }
+figure > .title { font-family: var(--disp); font-size: var(--fs-3); font-weight: 680; margin: 0 0 var(--sp-1); }
+figure > .subtitle, figure > figcaption { font-size: var(--fs-sm); color: var(--mist); }
+figure > .subtitle { margin: 0 0 var(--sp-4); }
+figure > figcaption { margin-top: var(--sp-3); }
+
+/* A viewBox scales the TEXT too: let a chart shrink freely to a 375px screen
+   and its 12px labels render at 6px. So the rendered width is bounded and the
+   chart scrolls in its own box below the floor, like a wide table.
+   Author charts on a 640-unit viewBox with font-size 12. */
+.chart { width: 100%; overflow-x: auto; }
+.chart svg { display: block; height: auto; width: 100%; min-width: 34rem; max-width: 44rem; overflow: visible; }
+.chart .grid  { stroke: var(--rule); stroke-width: 1; }
+.chart .axis  { fill: var(--mist); font-size: 12px; font-family: var(--sans); font-variant-numeric: tabular-nums; }
+.chart .label { fill: var(--ink-2); font-size: 12px; font-family: var(--sans); }
+.chart .line  { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .dot   { stroke: var(--card); stroke-width: 2; }
+.chart .bar   { rx: 4; }
+
+.legend { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); font-size: var(--fs-sm); color: var(--ink-2); margin-top: var(--sp-3); }
+.legend .key { display: inline-flex; align-items: center; gap: .45em; }
+.legend .swatch { width: .7em; height: .7em; border-radius: 2px; flex: none; }
+
+.datatable > summary {
+  cursor: pointer; font-size: var(--fs-sm); color: var(--mist);
+  padding: var(--sp-2) 0; min-height: 44px;
+  display: flex; align-items: center; gap: .4em; list-style: none;
+}
+.datatable > summary::-webkit-details-marker { display: none; }
+.datatable > summary::before { content: "▸"; transition: transform var(--dur-fast) var(--ease-out); }
+.datatable[open] > summary::before { transform: rotate(90deg); }
+
+/* Every table lives in this wrapper: it scrolls itself instead of widening
+   the page. On a desktop it should never need to — cells wrap and the wrapper
+   widens into the gutter. On a phone a table with real columns still has to
+   scroll, and that is the correct trade: a model number broken across three
+   lines is worse than a swipe. `overscroll-behavior-inline` keeps that swipe
+   inside the table instead of dragging the page or triggering back-navigation. */
+.table-scroll { overflow-x: auto; overscroll-behavior-inline: contain; margin-block: var(--sp-5); border: 1px solid var(--rule); border-radius: var(--radius); background: var(--card); }
+
+/* Phone: the first column is the row's label — pin it, so what you are reading
+   the specs OF stays on screen while you swipe through them, and the shadow at
+   its edge says there is more to the right. Add .plain to opt a table out (a
+   two-column table, or one whose first column is not a label). Semantics are
+   untouched: nothing here changes `display`, so the table is still a table to
+   a screen reader. */
+@media (max-width: 40rem) {
+  .table-scroll:not(.plain) :is(th, td):first-child {
+    position: sticky; left: 0; z-index: 1; background: var(--card);
+    box-shadow: 1px 0 0 var(--rule), 7px 0 7px -7px rgb(0 0 0 / .22);
+  }
+  .table-scroll:not(.plain) th:first-child { z-index: 2; }
+}
+table { border-collapse: collapse; width: 100%; font-size: var(--fs-sm); }
+th, td { padding: .7rem .9rem; text-align: left; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 620; color: var(--ink-2); background: var(--card); position: sticky; top: 0; }
+tbody tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+/* Cells wrap by default: nowrap makes a table's min-content width the sum of
+   every cell's longest unbroken line, which is what forces the horizontal
+   scroll. Opt individual cells out — a model number, a date, a figure — with
+   .nowrap. (`.wrap` is the old opt-in, kept so it stays a no-op.) */
+.nowrap, td.nowrap, th.nowrap { white-space: nowrap; }
+td.wrap { white-space: normal; }
+/* A mono sub-label under a term, the way a glossary sets it. */
+td .sub { display: block; font-family: var(--mono); font-size: var(--fs-xs); letter-spacing: .08em; color: var(--mist); text-transform: uppercase; margin-top: .15em; }
+
+/* ── §6 Motion ───────────────────────────────────────────────────────────────
+ *
+ * A report is read, not operated, so motion here has exactly one job: mark
+ * arrival. Entrances only, on the reader's own scroll, and only for elements
+ * that carry a beat — a section opening, a figure, a pulled line. Never on
+ * body paragraphs, and never anything that has to finish before the reader
+ * can read.
+ *
+ * All of it is progressive: without scroll-driven animation support every
+ * element is simply already visible. Nothing is gated behind motion.
+ */
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+    @keyframes reveal-in {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: none; }
+    }
+    /* Group entrance: 30–80ms between items reads as one gesture. Longer
+       feels slow, and it is decorative — nothing waits for it. */
+    .stagger > * { animation: reveal-in var(--dur-slow) var(--ease-out) both; }
+    .stagger > :nth-child(2) { animation-delay: 60ms; }
+    .stagger > :nth-child(3) { animation-delay: 120ms; }
+    .stagger > :nth-child(4) { animation-delay: 180ms; }
+    .stagger > :nth-child(n+5) { animation-delay: 240ms; }
+  }
+}
+
+/* The theme toggle: one fixed button that flips data-theme on <html>. It exists
+   because a reader whose every device is dark can otherwise never see the light
+   palette a report designed — and vice versa. State lives in a variable (storage
+   APIs throw in the sandbox), so it resets on reload; that is the correct trade.
+   Until the reader clicks, <html> stays un-stamped and the page follows the
+   system. Markup and the five-line script are in STYLE.md, floor item 5. */
+.theme-toggle {
+  position: fixed; top: 1rem; right: 1rem; z-index: 20;
+  min-height: 44px; padding: .4rem .85rem;
+  background: var(--card); color: var(--ink-2);
+  border: 1px solid var(--rule); border-radius: var(--radius);
+  font: var(--fs-xs)/1 var(--mono); letter-spacing: .06em; cursor: pointer;
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--ink); }
+@media (max-width: 40rem) { .theme-toggle { top: auto; bottom: 1rem; } }
+
+/* Reading progress, drawn by the scroll position itself — no JS, no listener. */
+.progress {
+  position: fixed; inset: 0 0 auto 0; height: 2px; z-index: 10;
+  background: var(--accent); transform-origin: 0 50%; transform: scaleX(0);
+}
+@supports (animation-timeline: scroll()) {
+  .progress { animation: progress linear both; animation-timeline: scroll(root block); }
+  @keyframes progress { to { transform: scaleX(1); } }
+}
+@media (prefers-reduced-motion: reduce) { .progress { display: none; } }
+
+/* Pressable things acknowledge the press. Hover motion is gated — a touch
+   device fires :hover on tap and the animation reads as a glitch. */
+@media (hover: hover) and (pointer: fine) {
+  a[href], .chip, summary { transition: color var(--dur-fast) var(--ease-out); }
+}
+button:active, summary:active { transform: scale(.98); }
+button, summary { transition: transform var(--dur-fast) var(--ease-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Gentler, not zero: colour and opacity stay, movement goes. */
+  *, *::before, *::after {
+    animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; scroll-behavior: auto !important;
+  }
+}
+
+/* ── §7 Print & forced colours ───────────────────────────────────────────── */
+
+@media print {
+  :root { --paper: #fff; --card: #fff; --ink: #000; --ink-2: #333; --mist: #555; --rule: #ccc; }
+  .report { max-width: none; padding: 0; }
+  .report > * { max-width: none; }
+  .progress, .theme-toggle, .datatable > summary { display: none; }
+  .datatable { display: block; }
+  /* A scroll-driven entrance never runs on paper — without this, everything
+     marked .reveal prints as blank space. Content is never gated behind
+     motion; this is the rule that keeps that true. */
+  .reveal, .stagger > * { animation: none !important; opacity: 1 !important; transform: none !important; }
+  figure, .card, .stat, .table-scroll, .note, pre { break-inside: avoid; }
+  h2, h3, .eyebrow { break-after: avoid; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+}
+
+@media (forced-colors: active) {
+  .card, .stat, .table-scroll, .note, pre, .chip { border: 1px solid CanvasText; }
+  .mark { background: Mark; color: MarkText; box-shadow: none; }
+}
+</style>
+<style>
+/* REGISTER:  番外篇工作日誌 — jevlike 第 21 輪：把讀字母接到語音辨識後面抓錯。讀者是問「ASR 前能不能先分純中文跟晶晶體」的人，
+              與要決定閘門怎麼做的工程師。這一輪的預測大半錯了，日誌照實記。
+   REFERENCE: 錄音室的 session log — 磁帶盒上的手寫標籤、逐軌紀錄表（take 幾、OK 或 NG）、紅筆圈出來的 NG take。
+   PAPER:     磁帶盒的淡青灰紙 hsl(200 18% 96%)；暗色是關了頂燈的控制室，深青黑 hsl(200 16% 9%)。
+   VOICE:     琥珀只給 take 編號、標題那兩個字與 NG 章；窄體 Plex 標題配 Noto 內文；等寬字給逐字稿與數字。
+   NOT:       不是儀表板，沒有互動；唯一的圖是兩欄並排的 AUROC 橫條，因為「誰排得前面」用長度一眼就看完。
+   RECENT:    paper 18° 48° 120° 262° · accent 215° 158° 178° 6° — 紙 200° 與琥珀 38° 都離得夠遠。 */
+:root {
+  --paper: hsl(200 18% 96%);
+  --card: hsl(200 26% 98.6%);
+  --ink: hsl(200 26% 12%);
+  --ink-2: hsl(200 14% 27%);
+  --mist: hsl(200 9% 40%);
+  --rule: hsl(200 18% 86%);
+  --rule-hard: hsl(200 14% 72%);
+  --accent: hsl(38 82% 36%);
+  --accent-soft: hsl(38 70% 92%);
+  --disp: "IBM Plex Sans Condensed", "Noto Sans TC", sans-serif;
+  --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --fs-display: clamp(2.4rem, 1.4rem + 4.6vw, 4.6rem);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --paper: hsl(200 16% 9%); --card: hsl(200 15% 12.5%); --ink: hsl(200 22% 92%); --ink-2: hsl(200 12% 78%);
+    --mist: hsl(200 8% 63%); --rule: hsl(200 11% 22%); --rule-hard: hsl(200 10% 33%);
+    --accent: hsl(40 80% 62%); --accent-soft: hsl(40 34% 20%);
+  }
+}
+:root[data-theme="dark"] {
+  --paper: hsl(200 16% 9%); --card: hsl(200 15% 12.5%); --ink: hsl(200 22% 92%); --ink-2: hsl(200 12% 78%);
+  --mist: hsl(200 8% 63%); --rule: hsl(200 11% 22%); --rule-hard: hsl(200 10% 33%);
+  --accent: hsl(40 80% 62%); --accent-soft: hsl(40 34% 20%);
+}
+body { background: var(--paper); color: var(--ink); }
+.take { display: inline-block; font-family: var(--mono); font-size: var(--fs-xs); letter-spacing: .08em; color: var(--accent); border: 1.5px solid var(--accent); border-radius: 3px; padding: .05em .45em; margin-bottom: var(--sp-2); }
+.take.ng { color: var(--critical); border-color: var(--critical); transform: rotate(-2deg); }
+.take.ok { color: var(--good); border-color: var(--good); }
+.lines { font-family: var(--mono); font-size: var(--fs-sm); line-height: 1.75; display: grid; gap: .35rem; margin: 0; }
+.lines dt { color: var(--mist); font-size: var(--fs-xs); letter-spacing: .06em; }
+.lines dd { margin: 0 0 .5rem; }
+.lines mark { background: var(--accent-soft); color: inherit; border-radius: 2px; padding: 0 .15em; }
+.lines mark.bad { background: color-mix(in oklab, var(--critical) 18%, transparent); }
+.verdict { font-size: var(--fs-sm); color: var(--ink-2); margin: var(--sp-3) 0 0; }
+.verdict b { color: var(--ink); }
+</style>
+<body>
+<div class="progress"></div>
+<button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">theme · auto</button>
+<main class="report">
+
+<p class="eyebrow">番外篇 · jevlike 第 21 輪 · Breeze 聽、Gemma 4 E4B 判 · 2026-10-15</p>
+<h1 class="display">讓模型聽，<br>不等於讓它<em>聽出錯</em></h1>
+<p class="lede">問題是「做語音辨識之前，能不能先用分類器把純中文和晶晶體分開」。追下去變成另一題：辨識完之後，讀字母能不能標出「這一段有錯」。答案是不能，而且讓 E4B 連聲音一起聽，更不能。這頁記錄怎麼問、怎麼改題、量到什麼、哪些預測錯了。</p>
+<p class="byline">語料與正解來自 clarencechien/kikemu exp5（公開 podcast，正解由兩路 Gemini 合併加人工裁決） · 在 Modal L4 上跑，約 $1.3 · 數字出自 jevlike results/25-asr-error-gate.md</p>
+
+<p class="eyebrow">take 01 · 題目在讀資料時變形</p>
+<h2>晶晶體不用模型分，Breeze 的錯也不是音譯</h2>
+<p>晶晶體是台灣人講話夾英文術語的方式：「這個 server 的 memory leak 很嚴重」。kikemu 已經用 Breeze ASR 25（聯發科的 Whisper 微調，針對台灣華語與中英夾雜）跑過 3 段科技 podcast、4 種聲學條件，每段 300 秒。把它的輸出對正解逐字對齊之後，三件事改變了題目：</p>
+<div class="cols">
+  <article class="card">
+    <span class="take ok">發現 1</span>
+    <h3>Breeze 會保留拉丁字母</h3>
+    <p>英文字就寫成英文字。「這段是純中文還是晶晶體」在它的輸出上是一條正規式：有沒有英文字母。不需要模型。</p>
+  </article>
+  <article class="card">
+    <span class="take ok">發現 2</span>
+    <h3>它的錯是認錯字，不是寫成漢字</h3>
+    <p>Bing 寫成 bin、core 寫成 cool、compare to 寫成 comparative。英文被寫成漢字整份語料只有 2 到 4 處。把英文音譯掉的反而是 E4B 自己當辨識器的時候。</p>
+  </article>
+  <article class="card">
+    <span class="take ok">發現 3</span>
+    <h3>中文錯字在吵的時候更多</h3>
+    <p>鄰里中心寫成林立中心、搜尋結果寫成攝影節目。會議人聲 12 dB 的條件下，每三個視窗就有一個。</p>
+  </article>
+</div>
+<p>所以這一輪量的是：<span class="mark">Breeze 單跑之後，E4B 讀字母能不能標出「這個視窗有錯」</span>，抓到的轉人或轉大模型，不做自動改錯。</p>
+
+<p class="eyebrow">take 02 · 怎麼量</p>
+<h2>544 個視窗、三種標籤、六個偵測器</h2>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>項目</th><th>做法</th></tr></thead>
+  <tbody>
+    <tr><td class="nowrap">視窗</td><td>Breeze 的小段（中位數 2.2 秒）太短沒有上下文，合併到 8 秒或 25 個 token，上限 15 秒。12 檔共 544 個，中位數 6.4 秒。</td></tr>
+    <tr><td class="nowrap">標籤</td><td>整段逐字稿對正解做 token 對齊，落到視窗：<b>E 英文錯</b> 117、<b>C 中文錯字</b> 210（連續兩個字以上的替換，單字增刪不算）、<b>N 乾淨</b> 271。跑任何模型之前先凍結。</td></tr>
+    <tr><td class="nowrap">雜訊地板</td><td>把第二路 Gemini 的稿當假設去對正解，32% 的視窗會被標成「有中文錯字」。這三成是正解自己不穩，不是辨識器的錯；中文錯字的門檻因此只報不判。</td></tr>
+    <tr><td class="nowrap">偵測器</td><td>D1 Breeze 自己的 token logprob（免費）；D5 Breeze 對 E4B 辨識結果的分歧（免費）；D2 E4B 純文字讀字母；D4 26B 純文字讀字母；D3 E4B 聽音訊加文字。讀字母的三題：有沒有英文字聽錯、有沒有中文聽錯、四選一的品質分類。</td></tr>
+    <tr><td class="nowrap">門檻</td><td>跑前寫死：E4B 抓英文錯 AUROC 要 0.85 以上，而且要贏過免費訊號 0.05 才值得加；音訊要再贏文字 0.05；閘門時間不超過 Breeze 的 10%。</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="eyebrow">take 03 · 量到什麼</p>
+<h2>免費的訊號贏了讀字母</h2>
+<div class="tiles wide">
+  <div class="stat"><p class="label">Breeze 自己的 logprob</p><div class="value">0.726</div><div class="delta">英文錯 AUROC · 免費</div></div>
+  <div class="stat"><p class="label">E4B 純文字讀字母</p><div class="value">0.713</div><div class="delta">每視窗三題 452 ms</div></div>
+  <div class="stat"><p class="label">26B 純文字讀字母</p><div class="value">0.777</div><div class="delta">每視窗三題 922 ms</div></div>
+  <div class="stat"><p class="label">E4B 聽音訊加文字</p><div class="value">0.602</div><div class="delta">每視窗三題 795 ms</div></div>
+</div>
+<figure>
+  <p class="title">五個偵測器把「有錯的視窗」排到前面的能力</p>
+  <p class="subtitle">AUROC：1 是完美、0.5 是擲硬幣。左：英文認錯字（117 個視窗）。右：中文錯字（210 個，正解有三成雜訊，只看相對高低）。</p>
+  <div class="chart"><svg viewBox="0 0 640 196" role="img" aria-label="五個偵測器的 AUROC，左欄英文錯、右欄中文錯字">
+<line class="grid" x1="182" y1="10" x2="182" y2="166"/>
+<text class="axis" x="182" y="182" text-anchor="middle">0.50</text>
+<line class="grid" x1="287" y1="10" x2="287" y2="166"/>
+<text class="axis" x="287" y="182" text-anchor="middle">0.75</text>
+<line class="grid" x1="392" y1="10" x2="392" y2="166"/>
+<text class="axis" x="392" y="182" text-anchor="middle">1.00</text>
+<line class="grid" x1="436" y1="10" x2="436" y2="166"/>
+<text class="axis" x="436" y="182" text-anchor="middle">0.50</text>
+<line class="grid" x1="526" y1="10" x2="526" y2="166"/>
+<text class="axis" x="526" y="182" text-anchor="middle">0.75</text>
+<line class="grid" x1="616" y1="10" x2="616" y2="166"/>
+<text class="axis" x="616" y="182" text-anchor="middle">1.00</text>
+<text class="axis" x="287" y="195" text-anchor="middle">英文錯 AUROC</text>
+<text class="axis" x="526" y="195" text-anchor="middle">中文錯字 AUROC</text>
+<text class="axis" x="174" y="26" text-anchor="end">Breeze 自己的 logprob</text>
+<rect class="bar" x="182" y="16" width="94.9" height="12" fill="var(--c1)"><title>Breeze 自己的 logprob：英文錯 AUROC 0.726</title></rect>
+<text class="label" x="282.9" y="26">0.726</text>
+<rect class="bar" x="436" y="16" width="101.9" height="12" fill="var(--c1)"><title>Breeze 自己的 logprob：中文錯字 AUROC 0.783</title></rect>
+<text class="label" x="543.9" y="26">0.783</text>
+<text class="axis" x="174" y="56" text-anchor="end">Breeze 對 E4B-ASR 分歧</text>
+<rect class="bar" x="182" y="46" width="69.3" height="12" fill="var(--c1)"><title>Breeze 對 E4B-ASR 分歧：英文錯 AUROC 0.665</title></rect>
+<text class="label" x="257.3" y="56">0.665</text>
+<rect class="bar" x="436" y="46" width="99.0" height="12" fill="var(--c1)"><title>Breeze 對 E4B-ASR 分歧：中文錯字 AUROC 0.775</title></rect>
+<text class="label" x="541.0" y="56">0.775</text>
+<text class="axis" x="174" y="86" text-anchor="end">E4B 純文字讀字母</text>
+<rect class="bar" x="182" y="76" width="89.5" height="12" fill="var(--c1)"><title>E4B 純文字讀字母：英文錯 AUROC 0.713</title></rect>
+<text class="label" x="277.5" y="86">0.713</text>
+<rect class="bar" x="436" y="76" width="46.4" height="12" fill="var(--c1)"><title>E4B 純文字讀字母：中文錯字 AUROC 0.629</title></rect>
+<text class="label" x="488.4" y="86">0.629</text>
+<text class="axis" x="174" y="116" text-anchor="end">26B 純文字讀字母</text>
+<rect class="bar" x="182" y="106" width="116.3" height="12" fill="var(--c1)"><title>26B 純文字讀字母：英文錯 AUROC 0.777</title></rect>
+<text class="label" x="304.3" y="116">0.777</text>
+<rect class="bar" x="436" y="106" width="59.8" height="12" fill="var(--c1)"><title>26B 純文字讀字母：中文錯字 AUROC 0.666</title></rect>
+<text class="label" x="501.8" y="116">0.666</text>
+<text class="axis" x="174" y="146" text-anchor="end">E4B 聽音訊加文字</text>
+<rect class="bar" x="182" y="136" width="42.8" height="12" fill="var(--c1)"><title>E4B 聽音訊加文字：英文錯 AUROC 0.602</title></rect>
+<text class="label" x="230.8" y="146">0.602</text>
+<rect class="bar" x="436" y="136" width="42.5" height="12" fill="var(--c1)"><title>E4B 聽音訊加文字：中文錯字 AUROC 0.618</title></rect>
+<text class="label" x="484.5" y="146">0.618</text>
+</svg></div>
+  <details class="datatable">
+    <summary>看數字</summary>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>偵測器</th><th class="num">英文錯</th><th class="num">中文錯字</th><th class="num">每視窗成本</th></tr></thead>
+        <tbody><tr><td>Breeze 自己的 logprob</td><td class="num">0.726</td><td class="num">0.783</td><td class="num">免費</td></tr><tr><td>Breeze 對 E4B-ASR 分歧</td><td class="num">0.665</td><td class="num">0.775</td><td class="num">免費（有第二套辨識器時）</td></tr><tr><td>E4B 純文字讀字母</td><td class="num">0.713</td><td class="num">0.629</td><td class="num">三題 452 ms</td></tr><tr><td>26B 純文字讀字母</td><td class="num">0.777</td><td class="num">0.666</td><td class="num">三題 922 ms</td></tr><tr><td>E4B 聽音訊加文字</td><td class="num">0.602</td><td class="num">0.618</td><td class="num">三題 795 ms</td></tr></tbody>
+      </table>
+    </div>
+  </details>
+  <figcaption>讀文字抓不到辨識的錯，因為認錯的字在句子裡看起來通：cool、bin、comparative 都是合理的詞，純文字只能靠「這個詞在這個領域不合」的先驗。26B 的先驗強一點，E4B 不夠；Breeze 自己的 logprob 是聲學證據，反而更準。</figcaption>
+</figure>
+<p>兩個模型最有把握抓到的，都是 bin、cool、comparative、quality（wallet）這種在上下文裡不通的英文字；漏掉的是 e-政府寫成一政府這種讀文字看不出來的。選項對調之後翻轉率不到 4%，位置偏誤不是原因。E4B 的 P(有錯) 平均只有 0.04，它幾乎不說有錯；26B 說「有錯」的時候四分之三真的有錯，但它只抓到一小部分，抓到八成要標一半的視窗。</p>
+
+<p class="eyebrow">take 04 · 音訊怎麼接進去</p>
+<h2>E4B 聽得到，server 不用換，但聽了更確定「沒錯」</h2>
+<div class="cols">
+  <article class="card">
+    <span class="take ok">接法</span>
+    <h3>同一個 llama-server，加一個耳朵檔</h3>
+    <p>Gemma 4 E4B 原生收音訊（305M 參數的 USM Conformer，每秒 25 個 token，上限 30 秒）。llama.cpp 今年 4 月併入了它的音訊編碼器，起 server 時加 <code>--mmproj</code>（BF16，作者說 F16 和 Q8_0 會重複輸出）就有。7 秒的視窗進去，prompt 多了 190 個 token。</p>
+  </article>
+  <article class="card">
+    <span class="take ng">NG take</span>
+    <h3>讀字母的那條路不吃音訊</h3>
+    <p>jevlike 原本從 <code>/completion</code> 的原始 prompt 讀第一個 token。這版 server 的多模態形式對 <code>&lt;__media__&gt;</code> 標記回「找到 0 個」。改走 <code>/v1/chat/completions</code> 加 <code>input_audio</code> 加 <code>logprobs</code> 拿得到，但要送 <code>enable_thinking: false</code>，否則第一個 token 跟思考區塊的開頭搶，字母的機率總和只剩一半。</p>
+  </article>
+</div>
+<article class="card">
+  <span class="take ng">NG take · 同一顆模型，同一個盲點</span>
+  <h3>它聽到的，跟 Breeze 寫錯的是同一批字</h3>
+  <dl class="lines">
+    <dt>正解</dt><dd>然後那時候做了差不多就是 <mark>Bing</mark> 就是 Bing 對 我在非常 <mark>core</mark> 的 <mark>team</mark></dd>
+    <dt>Breeze 寫的（乾淨條件）</dt><dd>然後那時候做了差不多就是 <mark class="bad">bin</mark> 就是 bin <mark class="bad">設定</mark> 我在非常 core 的 team</dd>
+    <dt>E4B 自己聽同一段</dt><dd>然後那時候做的差不多就是<mark class="bad">冰</mark>，就是冰水。我在非常<mark class="bad">酷</mark>的 <mark class="bad">Thing</mark>。</dd>
+  </dl>
+  <p class="verdict">Breeze 在吵的條件下還會把 core 寫成 cool。問 E4B「這一段有沒有英文字聽錯」：只看文字 P(有錯) <b>0.17</b>，加上聲音 <b>0.06</b>。它聽到的和 Breeze 寫的一致，所以更確定沒錯。整批 544 個視窗量完，聽音訊的 AUROC 0.602，比純文字低 0.11。想抓一個模型的錯，不能找聽法一樣的模型來聽。</p>
+</article>
+
+<p class="eyebrow">take 05 · 決定</p>
+<h2>閘門第一道用辨識器自己的信心，不加 E4B</h2>
+<div class="note critical">
+  <p class="head">三條結論</p>
+  <p>一、Breeze 之後的「這段有沒有錯」閘門，第一道用它自己的 token logprob（英文錯 0.73、中文錯字 0.78），低於門檻的視窗轉人。二、不用 E4B 讀文字當閘門，它沒贏過免費訊號；26B 贏 5 點但每視窗 0.3 秒乘題數，抓八成要標一半。三、要抓辨識器的錯，得用聽法不同的第二套辨識器比對（兩套分歧在中文錯字上 0.78），或是辨識器自己的信心；不是讓同一顆模型再聽一次。</p>
+</div>
+<p>這條線要再往前，缺兩樣東西：自發晶晶體的真實錄音，和人工校對過的正解，中文錯字的雜訊地板要從 32% 壓到 10% 以下，門檻才量得出來。kikemu 那邊 Scribe 與 Gemini 36 處分歧讓模型裁決的實驗，也要先有人把那 36 段各聽 5 秒再做，否則標籤偏向 Gemini。</p>
+
+<p class="eyebrow">take 06 · 預測對答案</p>
+<h2>十二條預測，錯了七條</h2>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>預測</th><th>實際</th><th></th></tr></thead>
+  <tbody>
+    <tr><td>E4B 純文字抓英文錯 0.85</td><td>0.713</td><td class="nowrap"><span class="take ng">錯</span></td></tr>
+    <tr><td>E4B 純文字抓中文錯字 0.72</td><td>0.629</td><td class="nowrap"><span class="take ng">錯</span></td></tr>
+    <tr><td>Breeze logprob 抓中文錯字 0.70 到 0.78</td><td>0.783</td><td class="nowrap"><span class="take ok">對</span></td></tr>
+    <tr><td>Breeze logprob 抓英文錯 0.65 到 0.72</td><td>0.726，比預測高</td><td class="nowrap"><span class="take ng">錯</span></td></tr>
+    <tr><td>26B 比 E4B 高 3 到 4 點</td><td>高 6 點，方向對</td><td class="nowrap"><span class="take ok">對</span></td></tr>
+    <tr><td>聽音訊比純文字最多高 0.03</td><td>低 0.11，方向對、幅度錯</td><td class="nowrap"><span class="take ok">對</span></td></tr>
+    <tr><td>聽音訊的 smoke 一半機率過不了</td><td>原本那條路真的不行，chat 路徑救回來；方向檢查沒過</td><td class="nowrap"><span class="take ok">對</span></td></tr>
+    <tr><td>含英文字母的視窗 60 到 75%</td><td>49%</td><td class="nowrap"><span class="take ng">錯</span></td></tr>
+    <tr><td>四選一品質分類準確率 0.60</td><td>0.45</td><td class="nowrap"><span class="take ng">錯</span></td></tr>
+    <tr><td>兩套辨識器分歧抓英文錯 0.75</td><td>0.665</td><td class="nowrap"><span class="take ng">錯</span></td></tr>
+    <tr><td>選項對調翻轉率 5% 以下</td><td>英文題 0.7%，中文題 10.8%</td><td class="nowrap"><span class="take ok">一半</span></td></tr>
+    <tr><td>26B 純文字抓英文錯 0.88</td><td>0.777</td><td class="nowrap"><span class="take ng">錯</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="eyebrow">take 07 · 詞</p>
+<h2>看這頁會遇到的詞</h2>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>詞</th><th>意思</th></tr></thead>
+  <tbody>
+    <tr><td class="nowrap">晶晶體</td><td>中文裡夾英文術語的講法。對辨識器來說難在切換：同一句話兩種語言。</td></tr>
+    <tr><td class="nowrap">AUROC</td><td>一個分數能不能把有錯的排在沒錯的前面。1 是完美，0.5 是擲硬幣。它不看門檻，所以正解有雜訊時還能比相對高低。</td></tr>
+    <tr><td class="nowrap">logprob</td><td>模型對自己寫出的每個字給的對數機率。低代表它當下也不確定，是聲學層的證據。</td></tr>
+    <tr><td class="nowrap">讀字母</td><td>jevlike 的做法：題目寫成選擇題，停在模型要回答的位置，只讀下一個 token 是 A 還是 B 的機率。不生成文字。</td></tr>
+    <tr><td class="nowrap">mmproj</td><td>llama.cpp 把多模態編碼器另存成一個檔，起 server 時掛上。E4B 的耳朵和眼睛都在這個檔裡。</td></tr>
+    <tr><td class="nowrap">雜訊地板</td><td>拿另一份同等品質的稿當假設去評，會有多少「錯」。超過這個比例的部分才是辨識器的錯。</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="byline">jevlike docs/handoff-v21-asr-error-gate.md（跑前寫死的門檻與預測）、results/25-asr-error-gate.md、results/v21.json、data/v21/ · kikemu exp5 commit 1a9cea4 · llama.cpp PR #21421（Gemma 4 音訊）</p>
+
+</main>
+<script>
+(() => {
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  let dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  btn.textContent = 'theme · ' + (dark ? 'dark' : 'light');
+  btn.addEventListener('click', () => {
+    dark = !dark; root.dataset.theme = dark ? 'dark' : 'light';
+    btn.textContent = 'theme · ' + (dark ? 'dark' : 'light'); btn.setAttribute('aria-pressed', 'true');
+  });
+})();
+</script>
+</body>
+</html>
