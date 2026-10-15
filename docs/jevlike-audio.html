@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="imitator-style" content="v3">
-<meta name="imitator-register" content="番外篇工作日誌 — 一條旁支實驗從問題、改題、量測到收線的完整紀錄，含失敗的預測">
+<meta name="imitator-register" content="番外篇工作日誌 — 先用白話講結論與值不值得，再附一條旁支實驗從問題、改題、量測到收線的完整紀錄，含失敗的預測">
 <meta name="imitator-reference" content="錄音室的 session log — 磁帶盒上的手寫標籤、逐軌紀錄表、紅筆圈出來的 NG take">
 <meta name="imitator-paper" content="hsl(200 18% 96%)">
 <meta name="imitator-accent" content="hsl(38 82% 36%)">
@@ -512,12 +512,57 @@ body { background: var(--paper); color: var(--ink); }
 
 <p class="eyebrow">番外篇 · jevlike 第 21 輪 · Breeze 聽、Gemma 4 E4B 判 · 2026-10-15</p>
 <h1 class="display">讓模型聽，<br>不等於讓它<em>聽出錯</em></h1>
-<p class="lede">問題是「做語音辨識之前，能不能先用分類器把純中文和晶晶體分開」。追下去變成另一題：辨識完之後，讀字母能不能標出「這一段有錯」。答案是不能，而且讓 E4B 連聲音一起聽，更不能。這頁記錄怎麼問、怎麼改題、量到什麼、哪些預測錯了。</p>
-<p class="byline">語料與正解來自 clarencechien/kikemu exp5（公開 podcast，正解由兩路 Gemini 合併加人工裁決） · 在 Modal L4 上跑，約 $1.3 · 數字出自 jevlike results/25-asr-error-gate.md</p>
+<p class="lede">我們想讓 AI 幫語音辨識挑錯字。結果：用讀稿的方式挑不出來，辨識器自己的「不確定」反而更準，讓 AI 連聲音一起聽更糟。這頁先用白話講結論，再講值不值得、還能試什麼，最後才是實驗細節。</p>
+<p class="byline">語料與正解來自 clarencechien/kikemu exp5（公開 podcast） · 在 Modal L4 上跑，約 $1.3 · 數字出自 jevlike results/25-asr-error-gate.md</p>
+
+<p class="eyebrow">先講結論</p>
+<h2>三句話</h2>
+<div class="cols">
+  <article class="card">
+    <span class="take">一</span>
+    <h3>讀稿挑錯，挑不出來</h3>
+    <p>語音辨識把 Bing 寫成 bin、core 寫成 cool，這些錯字在句子裡看起來都很正常。只看文字的 AI 分不出「正常的詞」和「聽錯的詞」，不管是小的（E4B）還是大的（26B）模型。</p>
+  </article>
+  <article class="card">
+    <span class="take">二</span>
+    <h3>辨識器自己知道它不確定</h3>
+    <p>辨識器在寫每個字的時候都有一個「把握度」。把握度低的地方，真的比較常是錯的。這個訊號是免費的，而且比讓 AI 讀稿判斷還準。</p>
+  </article>
+  <article class="card">
+    <span class="take ng">三</span>
+    <h3>讓 AI 聽聲音，更糟</h3>
+    <p>讓 AI 連聲音一起聽再判斷，反而更確定「沒錯」。因為它自己聽同一段也聽成冰、酷：跟辨識器錯在同一個地方。同一種耳朵，聽不出同一種錯。</p>
+  </article>
+</div>
+<div class="note">
+  <p class="head">所以怎麼做</p>
+  <p>辨識完之後，把握度低的段落交給人看，其他放行。不加 AI 讀稿這一道。這一步在 L4 上免費，在 GB10 上也免費。</p>
+</div>
+
+<p class="eyebrow">值不值得</p>
+<h2>這個形狀不值得，但題目還沒出完</h2>
+<p>「讀辨識稿判斷這段有沒有錯」這個形狀，jevlike 不值得做：讀文字沒贏過免費訊號，26B 多 5 點但每段多 0.3 秒乘題數，抓到八成的錯要標一半的段落，人工複核量沒省到。這個形狀收線。</p>
+<p>但沒試的不是更大的模型，是不同的輸入。jevlike 擅長「在擺出來的選項裡挑」，這一輪給它的卻是「在整段裡找」。還有四件便宜的事沒做，每件幾塊美金：</p>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>還能試</th><th>為什麼可能有用</th><th>要先有</th></tr></thead>
+  <tbody>
+    <tr><td class="nowrap">1 · 給它詞表再問</td><td>產線或會議本來就有專有名詞清單。問「這段有沒有詞表裡的詞被聽成別的」，補上這一輪缺的先驗。真實部署會有這個條件，這一輪故意沒給。</td><td>詞表</td></tr>
+    <tr><td class="nowrap">2 · 只問可疑的那一段，圈出可疑的詞</td><td>先用辨識器的把握度挑出低信心的段落，再把低信心的詞標出來問「這個詞對不對」。從大海撈針變成驗證一個嫌疑，是 jevlike 的題型；跟第 12 輪「低信心才思考」是同一個級聯。</td><td>把握度（已有）</td></tr>
+    <tr><td class="nowrap">3 · 兩套辨識器的稿並排，讓它選</td><td>兩套的分歧在中文錯字上已經有 0.78；在分歧點挑哪個對是純粹的選擇題。這就是 kikemu 那 36 處分歧的實驗。</td><td>有人先聽過那 36 段寫正解</td></tr>
+    <tr><td class="nowrap">4 · 改錯而不是找錯</td><td>把辨識器的前幾名候選擺出來讓它選。</td><td>辨識器吐候選</td></tr>
+  </tbody>
+</table>
+</div>
+<p>兩個前提：中文錯字的正解現在有三成雜訊，上面任何一件要判，都得先有人校對過的正解；這條線值不值得再花半天，看會議記錄那條產品線需不需要。建議：把握度閘門先上線，1 和 2 合成一輪，有校對過的正解再跑。</p>
+
+<p class="eyebrow">以下是實驗細節</p>
+<h2>怎麼問、怎麼改題、量到什麼、哪些預測錯了</h2>
+<p>問題原本是「做語音辨識之前，能不能先用分類器把純中文和晶晶體分開」。晶晶體是台灣人講話夾英文術語的方式：「這個 server 的 memory leak 很嚴重」。追下去題目變了形，以下照時間順序記。</p>
 
 <p class="eyebrow">take 01 · 題目在讀資料時變形</p>
 <h2>晶晶體不用模型分，Breeze 的錯也不是音譯</h2>
-<p>晶晶體是台灣人講話夾英文術語的方式：「這個 server 的 memory leak 很嚴重」。kikemu 已經用 Breeze ASR 25（聯發科的 Whisper 微調，針對台灣華語與中英夾雜）跑過 3 段科技 podcast、4 種聲學條件，每段 300 秒。把它的輸出對正解逐字對齊之後，三件事改變了題目：</p>
+<p>kikemu 已經用 Breeze ASR 25（聯發科的 Whisper 微調，針對台灣華語與中英夾雜）跑過 3 段科技 podcast、4 種聲學條件，每段 300 秒。把它的輸出對正解逐字對齊之後，三件事改變了題目：</p>
 <div class="cols">
   <article class="card">
     <span class="take ok">發現 1</span>
